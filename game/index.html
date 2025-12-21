@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="viewport" content="user-scalable=no">
+        <link rel="icon" href="icon/icon.png" type="image/png">
+        <link rel="apple-touch-icon" href="icon/icon.png">
+        <link rel="stylesheet" type="text/css" href="css/game.css">
+        <title>portfolio</title>
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+                background-color: black;
+                overflow: hidden; /* 스크롤바 제거 */
+                margin: 0;
+                padding: 0;
+                /* Flexbox를 이용한 중앙 정렬 */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            #gameCanvas {
+                /* 비율을 유지하면서 컨테이너에 맞게 크기 조정 (잘림 없음) */
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript" src="js/main.js"></script>
+        <script>
+            // --- 데이터 캐시 방지 코드 ---
+            // 맵이나 데이터 파일을 수정했을 때 브라우저가 이전 버전을 기억하는 문제를 해결합니다.
+            // DataManager가 로드된 후에 이 코드가 실행되어야 하므로, 짧은 간격으로 체크합니다.
+            const checkDataManager = setInterval(() => {
+                if (typeof DataManager !== 'undefined' && DataManager.loadDataFile) {
+                    clearInterval(checkDataManager);
+                    const _DataManager_loadDataFile = DataManager.loadDataFile;
+                    DataManager.loadDataFile = function(name, src) {
+                        const xhr = new XMLHttpRequest();
+                        // URL에 현재 시간을 덧붙여 항상 새로운 파일을 요청하도록 합니다.
+                        const url = 'data/' + src + '?v=' + Date.now();
+                        xhr.open('GET', url);
+                        xhr.overrideMimeType('application/json');
+                        xhr.onload = () => {
+                            if (xhr.status < 400) {
+                                window[name] = JSON.parse(xhr.responseText);
+                                DataManager.onLoad(window[name]);
+                            }
+                        };
+                        xhr.onerror = () => { DataManager._errorUrl = DataManager._errorUrl || url; };
+                        window[name] = null;
+                        xhr.send();
+                    };
+                }
+            }, 10);
+
+            // Detect Game Start for Achievement
+            const checkMap = setInterval(() => {
+                if (typeof Scene_Map !== 'undefined') {
+                    clearInterval(checkMap);
+                    const _Scene_Map_start = Scene_Map.prototype.start;
+                    Scene_Map.prototype.start = function() {
+                        _Scene_Map_start.call(this);
+                        window.parent.postMessage({ type: 'game_entered' }, '*');
+                    };
+                }
+            }, 200);
+        </script>
+    </body>
+</html>

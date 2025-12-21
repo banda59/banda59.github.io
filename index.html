@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <script>
+    // Security Filter (Simulation)
+    try {
+      let currentUrl = window.location.href;
+      for (let i = 0; i < 3; i++) {
+        try { currentUrl = decodeURIComponent(currentUrl); } catch (e) { break; }
+      }
+      const target = currentUrl.toLowerCase();
+      const threats = [
+        /union[\s\+]+select/i, /select[\s\+]+.*from/i,
+        /(insert|update|delete|replace|truncate)[\s\+]+.*(into|set|from|table)/i,
+        /drop[\s\+]+(table|database|view|index)/i, /--|\#|\/\*|;/,
+        /benchmark\(|sleep\(|waitfor\s+delay/i, /or\s+1=1/i, /<script/i, /<\/script/i,
+        /(javascript|vbscript|jscript|livescript):/i, /data:(text|application)\//i,
+        /on(load|error|click|dblclick|mouseover|mouseout|focus|blur|change|submit|reset|keydown|keypress|keyup)\s*=/i,
+        /(alert|confirm|prompt|eval|setTimeout|setInterval|function)\s*\(/i,
+        /&#[x0-9a-f]+;/i, /document\.(cookie|domain|location|write|body)/i,
+        /window\.(location|opener|parent|history)/i,
+        /<(iframe|object|embed|applet|meta|link|style|base|form)/i,
+        /\.\.[\/\\]/, /\/etc\/(passwd|shadow|group|hosts)/i,
+        /c:\\(windows|winnt|system32)/i, /boot\.ini|win\.ini/i, /%00/,
+        /(file|gopher|php|expect|zip|phar):\/\//i,
+        /(cmd|bash|sh|powershell|perl|python)\.(exe|sh|pl|py)/i,
+        /(^|[^\w])(cat|ls|dir|type|net|whoami|ipconfig|ifconfig|curl|wget|nc|netcat)[\s\+]/i,
+        /\.(env|git|svn|htaccess|htpasswd|ssh|bak|old|log|conf|config|ini)/i,
+        /(admin|root|login|signin|signup|dashboard|cpanel|setup|install)/i
+      ];
+      if (threats.some(pattern => pattern.test(target))) {
+        window.location.replace('warning.html');
+      }
+    } catch (e) { /* ignore encoding errors */ }
+  </script>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
+  <link rel="stylesheet" href="style.css" />
+  <title>wallpaper</title>
+  <style>
+    * {
+      cursor: url(https://cur.cursors-4u.net/cursors/cur-9/cur266.cur), auto !important;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #intro {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    #introPanel {
+      position: relative;
+      width: min(90vw, 1280px, 128vh);
+      height: min(80vh, 800px, 56.25vw);
+      background: #000;
+      border: 1px solid #fff;
+      box-shadow: none;
+      transition: opacity 900ms ease, background-color 900ms ease, border-color 900ms ease, width 0.5s ease, height 0.5s ease;
+      opacity: 1;
+    }
+
+    #introText {
+      position: absolute;
+      left: 50%;
+      top: 38%;
+      transform: translate(-50%, -50%);
+      width: min(74vw, 860px);
+      text-align: center;
+      font-family: 'omori2', 'kyobo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: clamp(18px, 2.8vw, 34px);
+      line-height: 1.0;
+      letter-spacing: 0.5px;
+      color: #fff;
+      opacity: 0;
+      transition: opacity 900ms ease;
+      user-select: none;
+      white-space: pre-line;
+    }
+
+    #introText .hl {
+      color: #6b6bff;
+    }
+
+    #introText .hl-cherry {
+      color: #ff33cc;
+    }
+
+    #introBtn {
+      position: absolute;
+      left: 50%;
+      top: 72%;
+      transform: translate(-50%, -50%);
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid #ab96ff;
+      color: #be92ff;
+      font-family: 'omori2', 'kyobo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: clamp(20px, 2.5vw, 26px);
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 650ms ease;
+      pointer-events: none;
+    }
+
+    #introBtn:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    #introBtn:disabled {
+      cursor: default;
+    }
+
+    #instructionText {
+      position: absolute;
+      bottom: 40px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: #888;
+      font-family: 'omori2', 'kyobo', monospace;
+      font-size: clamp(24px, 3.5vw, 32px);
+      pointer-events: none;
+      display: none;
+      animation: blink 2s infinite ease-in-out;
+    }
+
+    #skipBtn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid #888;
+      color: #888;
+      font-family: 'kyobo', monospace;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      /* Initially hidden */
+      z-index: 16;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    #skipBtn:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    #privacyNotice {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: #666;
+      font-family: 'kyobo', monospace;
+      font-size: clamp(11px, 2vw, 14px);
+      pointer-events: none;
+      opacity: 0;
+      animation: privacyFade 6s ease-in-out forwards;
+      animation-delay: 0.5s;
+    }
+
+    @keyframes privacyFade {
+      0% {
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 1;
+      }
+
+      85% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    #sleepWrap {
+      position: fixed;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      z-index: 11;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: var(--sleepSize, 96px);
+      height: var(--sleepSize, 96px);
+
+      pointer-events: none;
+      opacity: 1;
+    }
+
+    #sleepCv {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    #credit {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 16px;
+      z-index: 15;
+
+      text-align: center;
+      font-family: 'omori2', 'kyobo', monospace;
+      font-size: 28px;
+      color: #c4b9ff;
+
+      pointer-events: none;
+      user-select: none;
+
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 4px 12px;
+      border-radius: 10px;
+    }
+
+    #portfolio-logo {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 5px;
+      z-index: 15;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #portfolio-logo img {
+      display: block;
+      width: 400px;
+      margin-bottom: 5px;
+    }
+
+    #volumeBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 20;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      user-select: none;
+      padding: 0;
+    }
+
+    #volumeBtn img {
+      width: 80px;
+      height: 80px;
+    }
+
+    #volumeBtn:active {
+      transform: scale(0.9);
+    }
+
+    #intro.cleared {
+      pointer-events: none;
+    }
+
+    #intro.cleared #introPanel {
+      opacity: 0;
+      border-color: rgba(255, 255, 255, 0.0);
+      background: rgba(0, 0, 0, 0.0);
+    }
+
+    #intro.cleared #introText,
+    #intro.cleared #introBtn {
+      opacity: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      #introText,
+      #introPanel,
+      #introBtn {
+        transition: none;
+      }
+    }
+
+    #mobileControls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 30;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.6;
+    }
+
+    .dpad-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    #mobileControls button {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 24px;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      padding: 0;
+    }
+
+    #mobileControls button:active {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      #mobileControls {
+        display: flex;
+      }
+
+      #instructionText {
+        display: none !important;
+      }
+    }
+
+    #speechBubble {
+      position: absolute;
+      bottom: 105%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 2px solid #000;
+      padding: 6px 10px;
+      color: #000;
+      font-family: 'kyobo', monospace;
+      font-size: 14px;
+      white-space: nowrap;
+      display: none;
+      z-index: 100;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+      image-rendering: pixelated;
+      pointer-events: none;
+    }
+
+    #speechBubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -6px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: #000 transparent transparent transparent;
+    }
+
+    #achievementPopup {
+      position: absolute;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(90%, 360px);
+      background: #000;
+      border: 2px solid #fff;
+      padding: 12px;
+      z-index: 200;
+      text-align: center;
+      transition: top 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.5s ease;
+      box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    #achievementPopup.show {
+      top: 20px;
+      opacity: 1;
+    }
+
+    .ach-title {
+      color: #ccff00;
+      font-family: 'omori2', monospace;
+      font-size: 18px;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .ach-desc {
+      color: #fff;
+      font-family: 'kyobo', monospace;
+      font-size: 16px;
+    }
+
+    #gameFrame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      opacity: 0;
+      transition: opacity 3s ease;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    #gameFrame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Content Overlay */
+    #contentContainer {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+#contentWindow {
+  --sbw: clamp(110px, 12vw, 170px);
+  --pad: clamp(12px, 1.4vw, 22px);
+  width: min(90vw, 1280px);
+  height: min(80vh, 800px);
+  background: #000;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#contentFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 10;
+}
+
+#uiLayer{
+  position:absolute;
+  right: var(--pad);
+  bottom: var(--pad);
+  z-index:40;
+
+  display:flex;
+  align-items:flex-end;
+  gap: var(--gap);
+
+  pointer-events:none;
+  transform: translateZ(0);
+}
+
+#sideBanda{
+  width: clamp(140px, 15vw, 220px);
+  height: clamp(190px, 22vh, 320px);
+
+  background-image: url('sprites/side_banda.png');
+  background-repeat:no-repeat;
+  background-position:right bottom;
+  background-size:contain;
+
+  image-rendering:pixelated;
+  pointer-events:none;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+#backBtn{
+  pointer-events:auto;
+
+  padding: clamp(8px, 1.0vw, 12px) clamp(10px, 1.2vw, 18px);
+  background: transparent;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #000 inset;
+
+  color:#fff;
+  font-family:'kyobo', monospace;
+  font-size: clamp(14px, 1.6vw, 20px);
+  letter-spacing: 1px;
+
+  text-shadow:
+    -2px 0 #000, 2px 0 #000,
+    0 -2px #000, 0 2px #000,
+    -2px -2px #000, 2px -2px #000,
+    -2px 2px #000, 2px 2px #000;
+
+  cursor:pointer;
+  user-select:none;
+  image-rendering:pixelated;
+
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+#backBtn:hover{
+  transform: translateY(-1px) translateZ(0);
+}
+#backBtn:active{
+  transform: translateY(1px) translateZ(0);
+}
+
+
+  </style>
+  <template id="iframe-scrollbar-style">
+    <style>
+      /* OMORI-style Scrollbar */
+      body::-webkit-scrollbar {
+        width: 15px;
+      }
+
+      body::-webkit-scrollbar-track {
+        background: #000;
+      }
+
+      body::-webkit-scrollbar-thumb {
+        background-color: #fff;
+        border: 3px solid #000;
+      }
+
+      html {
+        scrollbar-width: thin;
+        scrollbar-color: #fff #000;
+      }
+    </style>
+  </template>
+</head>
+
+<body>
+  <canvas id="c"></canvas>
+  <a href="https://www.cursors-4u.com/cursor/2011/12/01/light-blue-pointer-2.html" target="_blank"
+    title="Light Blue Pointer"><img src="https://cur.cursors-4u.net/cursor.png" border="0" alt="Light Blue Pointer"
+      style="position:absolute; top: 0px; right: 0px;" /></a>
+  <button id="volumeBtn" aria-label="Toggle Volume"><img id="volumeImg" src="volume/volOn.png" alt="Volume"></button>
+  <div id="credit">
+    © Artwork all made by banda.<br>
+    <span style="font-size: 1em; color: #999; text-shadow: 1px 1px 0 #000;">(excluded sfx.)</span>
+  </div>
+
+
+  <div id="intro" aria-label="Intro">
+    <div id="introPanel" aria-hidden="false">
+      <div id="portfolio-logo">
+        <img src="sprites/portfolio.png" alt="Portfolio Logo">
+      </div>
+      <div id="introText" class="fade"></div>
+      <button id="introBtn" type="button" aria-label="Start" disabled>Ok, I&#39;ll do that.</button>
+      <div id="instructionText">- Use WASD keys to move -</div>
+      <div id="privacyNotice">이 사이트는 귀하의 개인정보나 쿠키를 수집하지 않습니다.</div>
+      <div id="achievementPopup">
+        <div class="ach-title">ACHIEVEMENT UNLOCKED</div>
+        <div class="ach-desc"></div>
+      </div>
+      <!-- RPG Maker Game Frame -->
+      <iframe id="gameFrame" allow="autoplay"></iframe>
+      <button id="skipBtn">인트로 스킵 &gt;&gt;</button>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobileControls">
+      <div class="dpad-row"><button id="btnUp">▲</button></div>
+      <div class="dpad-row">
+        <button id="btnLeft">◀</button>
+        <button id="btnDown">▼</button>
+        <button id="btnRight">▶</button>
+      </div>
+    </div>
+
+    <div id="sleepWrap" aria-hidden="true">
+      <canvas id="sleepCv"></canvas>
+      <div id="speechBubble"></div>
+    </div>
+  </div>
+
+  <!-- Content Overlay -->
+  <div id="contentContainer">
+    <div id="contentWindow">
+      <iframe id="contentFrame"></iframe>
+    
+      <div id="uiLayer">
+        <button id="backBtn">돌아가기</button>
+        <div id="sideBanda"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    (() => {
+      'use strict';
+
+      const files = [
+        "1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "7.png", "9.png", "10.png"
+      ].map(n => "sprites/" + n);
+
+      const OBJ_MIN = 18;
+      const OBJ_MAX = 28;
+
+      const OBJ_L_MIN = 1;
+      const OBJ_L_MAX = 2;
+
+      const OBJ_SC_MIN = 0.15;
+      const OBJ_SC_MAX = 0.26;
+
+      const OBJ_PAD = 10;
+      const OBJ_SAME_EXTRA = 60;
+
+      const STAR_DOT_SCALE = 1.0;
+      const STAR_SPARKLE_SCALE = 1.35;
+
+      const OBJ_FADE_RATIO = 0.30;
+      const OBJ_FADE_MIN_A = 0.05;
+      const OBJ_FADE_MAX_A = 1.00;
+      const OBJ_FADE_PERIOD_MIN = 6;
+      const OBJ_FADE_PERIOD_MAX = 12;
+
+      const cv = document.getElementById('c');
+      const ctx = cv.getContext('2d', { alpha: false });
+
+      let W = 0, H = 0, DPR = 1;
+      let imgs = [];
+      let stars = [];
+      let sparkles = [];
+      let objs = [];
+
+      let seed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0;
+      function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+      function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
+
+      function resize() {
+        DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        W = Math.max(1, Math.floor(window.innerWidth));
+        H = Math.max(1, Math.floor(window.innerHeight));
+
+        cv.width = Math.floor(W * DPR);
+        cv.height = Math.floor(H * DPR);
+        cv.style.width = W + "px";
+        cv.style.height = H + "px";
+
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+
+        buildStars();
+        buildObjects();
+      }
+
+      function buildStars() {
+        stars.length = 0;
+        sparkles.length = 0;
+
+        const area = W * H;
+
+        const n = Math.max(900, Math.min(2600, Math.floor(area / 520)));
+        for (let i = 0; i < n; i++) {
+          const r = rnd();
+          let size;
+          if (r < 0.62) size = 1;
+          else if (r < 0.86) size = 2;
+          else if (r < 0.96) size = 3;
+          else size = 4;
+
+          size = Math.max(1, Math.round(size * STAR_DOT_SCALE));
+
+          stars.push({
+            x: rnd() * W,
+            y: rnd() * H,
+            s: size,
+            ph: rnd() * Math.PI * 2,
+            sp: 0.7 + rnd() * 0.9,
+            base: 0.18 + rnd() * 0.35
+          });
+        }
+
+        const m = Math.max(45, Math.min(120, Math.floor(area / 19000)));
+        for (let i = 0; i < m; i++) {
+          const rr = rnd();
+          let size;
+          if (rr < 0.55) size = 2;
+          else if (rr < 0.85) size = 3;
+          else size = 4;
+
+          size = Math.max(2, Math.round(size * STAR_SPARKLE_SCALE));
+
+          sparkles.push({
+            x: rnd() * W,
+            y: rnd() * H,
+            size,
+            ph: rnd() * Math.PI * 2,
+            sp: 0.55 + rnd() * 0.7,
+            duty: 0.20 + rnd() * 0.55,
+            shape: rnd() < 0.65 ? 0 : 1,
+            on: rnd() < 0.50
+          });
+        }
+      }
+
+      function drawStars(t) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, W, H);
+
+        for (let i = 0; i < stars.length; i++) {
+          const st = stars[i];
+          const v = st.base + (0.25 + 0.35 * Math.sin(t * st.sp + st.ph));
+          if (v < 0.12) continue;
+
+          const x = st.x | 0;
+          const y = st.y | 0;
+          const s = st.s | 0;
+
+          ctx.globalAlpha = Math.min(1, v);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(x, y, s, s);
+        }
+        ctx.globalAlpha = 1;
+
+        for (let i = 0; i < sparkles.length; i++) {
+          const st = sparkles[i];
+          const phase = (t * st.sp + st.ph) % (Math.PI * 2);
+          const s = Math.sin(phase);
+
+          const on = (st.on ? (s > (1 - st.duty)) : (s < (-1 + st.duty)));
+          if (!on) continue;
+
+          const x = st.x | 0;
+          const y = st.y | 0;
+          const size = st.size | 0;
+
+          const a = 0.70 + 0.30 * Math.abs(s);
+          ctx.globalAlpha = a;
+
+          const len = (size * (2.1 + 0.8 * Math.abs(s))) | 0;
+
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(x, y, size, size);
+
+          for (let k = -len; k <= len; k += 1) {
+            ctx.fillRect(x + k, y, 1, 1);
+            ctx.fillRect(x, y + k, 1, 1);
+          }
+
+          if (st.shape === 1) {
+            for (let k = -len; k <= len; k += 1) {
+              ctx.fillRect(x + k, y + k, 1, 1);
+              ctx.fillRect(x + k, y - k, 1, 1);
+            }
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = (rnd() * (i + 1)) | 0;
+          const t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+      }
+
+      function buildObjects() {
+        objs.length = 0;
+        if (!imgs.length) return;
+
+        const area = W * H;
+        let target = Math.round(area / 120000) + 12;
+        target = clamp(target, OBJ_MIN, OBJ_MAX);
+
+        const idxs = [];
+        while (idxs.length < target) {
+          const cycle = [];
+          for (let i = 0; i < imgs.length; i++) cycle.push(i);
+          shuffle(cycle);
+          for (let i = 0; i < cycle.length && idxs.length < target; i++) idxs.push(cycle[i]);
+        }
+
+        const cell = Math.sqrt(area / (target * 1.15));
+        const gx = Math.max(3, Math.floor(W / cell));
+        const gy = Math.max(3, Math.floor(H / cell));
+        const dx = W / gx;
+        const dy = H / gy;
+
+        const cand = [];
+        for (let y = 0; y < gy; y++) {
+          for (let x = 0; x < gx; x++) {
+            const jx = (rnd() - 0.5) * dx * 0.30;
+            const jy = (rnd() - 0.5) * dy * 0.30;
+            cand.push({ x: (x + 0.5) * dx + jx, y: (y + 0.5) * dy + jy });
+          }
+        }
+        shuffle(cand);
+
+        let cpos = 0;
+        let tries = 0;
+        const maxTries = cand.length * 10;
+
+        while (objs.length < target && tries < maxTries) {
+          tries++;
+
+          const idx = idxs[objs.length % idxs.length];
+          const im = imgs[idx];
+
+          const longSideTarget = Math.min(W, H) * (OBJ_L_MIN + (OBJ_L_MAX - OBJ_L_MIN) * rnd());
+          const base = Math.max(im.width, im.height);
+          let sc = longSideTarget / Math.max(1, base);
+          sc = clamp(sc, OBJ_SC_MIN, OBJ_SC_MAX);
+
+          const dw = Math.max(12, Math.round(im.width * sc));
+          const dh = Math.max(12, Math.round(im.height * sc));
+
+          const padEdge = Math.max(dw, dh) * 0.55 + 6;
+
+          let x, y;
+          if (cpos < cand.length) {
+            x = cand[cpos].x; y = cand[cpos].y; cpos++;
+          } else {
+            x = padEdge + rnd() * (W - padEdge * 2);
+            y = padEdge + rnd() * (H - padEdge * 2);
+          }
+
+          x = clamp(x, padEdge, W - padEdge);
+          y = clamp(y, padEdge, H - padEdge);
+
+          const r = (Math.max(dw, dh) * 0.55) + OBJ_PAD;
+
+          let ok = true;
+          for (let i = 0; i < objs.length; i++) {
+            const o = objs[i];
+            const dx2 = x - o.x;
+            const dy2 = y - o.y;
+            const d2 = dx2 * dx2 + dy2 * dy2;
+
+            let need = r + o.r;
+            if (o.idx === idx) need += OBJ_SAME_EXTRA;
+            if (d2 < need * need) { ok = false; break; }
+          }
+          if (!ok) continue;
+
+          const fade = (rnd() < OBJ_FADE_RATIO);
+          const per = OBJ_FADE_PERIOD_MIN + (OBJ_FADE_PERIOD_MAX - OBJ_FADE_PERIOD_MIN) * rnd();
+          const ph = rnd() * Math.PI * 2;
+
+          objs.push({
+            idx,
+            x: x | 0,
+            y: y | 0,
+            dw: dw | 0,
+            dh: dh | 0,
+            r,
+            fade,
+            per,
+            ph
+          });
+        }
+      }
+
+      function drawObjects(t) {
+        for (let i = 0; i < objs.length; i++) {
+          const o = objs[i];
+          const im = imgs[o.idx];
+
+          if (o.fade) {
+            const s = 0.5 + 0.5 * Math.sin((t * (Math.PI * 2) / o.per) + o.ph);
+            const a = OBJ_FADE_MIN_A + (OBJ_FADE_MAX_A - OBJ_FADE_MIN_A) * s;
+            ctx.globalAlpha = a;
+          } else {
+            ctx.globalAlpha = 1;
+          }
+
+          ctx.drawImage(
+            im,
+            (o.x - o.dw / 2) | 0,
+            (o.y - o.dh / 2) | 0,
+            o.dw | 0,
+            o.dh | 0
+          );
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      let t0 = performance.now();
+      function frame(now) {
+        const t = (now - t0) / 1000;
+        drawStars(t);
+        drawObjects(t);
+        requestAnimationFrame(frame);
+      }
+
+      function loadOne(src) {
+        return new Promise((resolve) => {
+          const im = new Image();
+          im.onload = () => resolve({ ok: true, im, src });
+          im.onerror = () => resolve({ ok: false, src });
+          im.src = src;
+        });
+      }
+
+      async function loadAll() {
+        const res = await Promise.all(files.map(loadOne));
+        imgs = res.filter(x => x.ok).map(x => x.im);
+
+        if (!imgs.length) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(0, 0, cv.width, cv.height);
+          ctx.fillStyle = "#fff";
+          ctx.font = "16px monospace";
+          ctx.fillText("no sprites loaded", 20, 30);
+          ctx.fillText("check page/sprites/*.png and file names", 20, 55);
+          return;
+        }
+
+        resize();
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('resize', resize, { passive: true });
+      loadAll();
+
+    })();
+  </script>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const SLEEP_JSON = 'motion/sleep.json';
+      const SLEEP_IMG = 'motion/sleep.png';
+      const INTEND_JSON = 'motion/introend.json';
+      const INTEND_IMG = 'motion/introend.png';
+      const FRONT_JSON = 'motion/front.json';
+      const FRONT_IMG = 'motion/front.png';
+      const BACK_JSON = 'motion/back.json';
+      const BACK_IMG = 'motion/back.png';
+      const LEFT_JSON = 'motion/left.json';
+      const LEFT_IMG = 'motion/left.png';
+      const RIGHT_JSON = 'motion/right.json';
+      const RIGHT_IMG = 'motion/right.png';
+
+      const LINES = [
+        { html: 'Hi, this is <span class="hl">banda</span>.', hold: 1200 },
+        { html: 'Welcome to black space.', hold: 1200 },
+        { html: 'She had been sleeping here for<br>as long as she can remember.', hold: 1600 },
+        { html: 'Do you want to wake <span class="hl">banda</span> up<br>and see her <span class="hl-cherry">portfolio</span>?', hold: 0 }
+      ];
+
+      const TMIS = [
+        "역전재판을 너무 재밌게 해서 변호사를 꿈꾼 적이 있어요.", "여기서 나쁜 짓을 하면.. 큰일날지도 몰라요.",
+        "고양이에게 어그로가 잘 끌리는 편이에요.", "포켓몬리그 세자릿수 순위를 가본 적이 있어요.",
+        "미니게임도 있어요!", "어릴 적 파워 블로거 였답니다.", "버그가 아니에요!",
+        "저는 당신이 누군지 몰라요.", "업적과 이스터에그를 찾아보세요!", "정말 다양한 뻘짓을 하는 편이에요.",
+        "KT 롤스터 이승민 선수의 BIG-FAN 입니다.", "소문난 동물의 숲 안쵸비 바라기 랍니다.",
+        "취약점을 찾으면 익스플로잇을 해야해요.", "여기서 이상한 짓 하지 마세요.",
+        "제가 좋아하는 색은 보라색이에요.", "저는 당신이 궁금하네요.", "혼자서 잘 놀아요.",
+        "저는 INTP에요.", "브라우저 캐시를 삭제하면 모든 업적이 사라져요.", "Zzz..."
+      ];
+
+      const achievementPopup = document.getElementById('achievementPopup');
+      const achDesc = achievementPopup.querySelector('.ach-desc');
+      let achievements = {};
+      try { achievements = JSON.parse(localStorage.getItem('achievements') || '{}'); } catch (e) { }
+
+      function unlockAchievement(key, text) {
+        if (achievements[key]) return;
+        achievements[key] = true;
+        try { localStorage.setItem('achievements', JSON.stringify(achievements)); } catch (e) { }
+
+        achDesc.innerText = text;
+        achievementPopup.classList.add('show');
+
+        if (volumeOn) {
+          achSfx.currentTime = 0;
+          achSfx.play().catch(() => { });
+        }
+
+        setTimeout(() => {
+          achievementPopup.classList.remove('show');
+        }, 4000);
+      }
+
+      const FADE_IN = 900;
+      const FADE_OUT = 900;
+
+      const intro = document.getElementById('intro');
+      const text = document.getElementById('introText');
+      const btn = document.getElementById('introBtn');
+      const volumeBtn = document.getElementById('volumeBtn');
+      const volumeImg = document.getElementById('volumeImg');
+      const skipBtn = document.getElementById('skipBtn');
+      const sleepCv = document.getElementById('sleepCv');
+      const sleepCtx = sleepCv.getContext('2d', { alpha: true });
+      const sfx = new Audio("sound/intro.mp3");
+      sfx.preload = "auto";
+      sfx.volume = 0.6;
+      const btnSfx = new Audio("sound/introbtn.mp3");
+      btnSfx.preload = "auto";
+      btnSfx.volume = 0.6;
+      const achSfx = new Audio("sound/achive.mp3");
+      achSfx.preload = "auto";
+      achSfx.volume = 0.6;
+      const bgm = new Audio("sound/FishSong.mp3");
+      bgm.loop = true;
+      bgm.volume = 0.5;
+      const mapBgm = new Audio("sound/space2.mp3");
+      mapBgm.loop = true;
+      mapBgm.volume = 0.5;
+
+      let audioUnlocked = false;
+      let volumeOn = true;
+      let introSkipped = false;
+
+      try {
+        let visits = parseInt(localStorage.getItem('visitCount') || '0');
+        visits++;
+        localStorage.setItem('visitCount', visits);
+        if (visits > 1) { skipBtn.style.display = 'block'; }
+        if (visits >= 100) { LINES.unshift({ html: '좀.. 많이 들어오셨네요.', hold: 1500 }); }
+        else if (visits >= 10) { LINES.unshift({ html: '여전히 기억해주셔서 감사합니다.', hold: 1500 }); }
+        else if (visits >= 5) { LINES.unshift({ html: '..또 오셨네요?!', hold: 1500 }); }
+        if (visits >= 10) { unlockAchievement('visit_10', '단골 손님 (10회 방문)'); }
+        if (visits >= 100) { unlockAchievement('visit_100', '고인물 (100회 방문)'); }
+        if (visits === 1) { unlockAchievement('first_visit', '첫 발걸음 (첫 방문)'); }
+      } catch (e) { }
+
+      let totalSeconds = 0;
+      try { totalSeconds = parseInt(localStorage.getItem('totalTime') || '0'); } catch (e) { }
+      setInterval(() => {
+        totalSeconds++;
+        try { localStorage.setItem('totalTime', totalSeconds); } catch (e) { }
+        if (totalSeconds >= 3600) { unlockAchievement('playtime_1h', '시간의 지배자 (1시간 접속)'); }
+      }, 1000);
+
+      let animState = 'sleep';
+      let animIdx = 0;
+      let charPos = { x: 0, y: 0 };
+      let charDir = 'front';
+      let isMoving = false;
+      const keys = { w: false, a: false, s: false, d: false };
+
+      function unlockAudioOnce() {
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+        sfx.play().then(() => { sfx.pause(); sfx.currentTime = 0; }).catch(() => { });
+      }
+
+      window.addEventListener("pointerdown", unlockAudioOnce, { once: true });
+
+      window.addEventListener('keydown', e => { const k = e.key.toLowerCase(); if (keys.hasOwnProperty(k)) keys[k] = true; });
+      window.addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (keys.hasOwnProperty(k)) keys[k] = false; });
+
+      const dpadMap = [{ id: 'btnUp', k: 'w' }, { id: 'btnDown', k: 's' }, { id: 'btnLeft', k: 'a' }, { id: 'btnRight', k: 'd' }];
+      dpadMap.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (!el) return;
+        const setKey = (state) => { keys[item.k] = state; };
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); setKey(true); el.style.background = 'rgba(255,255,255,0.4)'; }, { passive: false });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); setKey(false); el.style.background = ''; }, { passive: false });
+      });
+
+      function playSfx() {
+        if (!audioUnlocked || introSkipped) return;
+        const a = sfx.cloneNode();
+        a.volume = sfx.volume;
+        a.currentTime = 0;
+        a.play().catch(() => { });
+      }
+
+      function waitForAudioUnlock() {
+        if (audioUnlocked) return Promise.resolve();
+        return new Promise(res => { window.addEventListener("pointerdown", () => { unlockAudioOnce(); res(); }, { once: true }); });
+      }
+
+      function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+      function nextFrame() { return new Promise(r => requestAnimationFrame(() => r())); }
+      function setText(html) { text.innerHTML = html; }
+
+      async function showLine(line, isLast) {
+        if (introSkipped) return;
+        setText(line.html);
+        playSfx();
+        text.style.opacity = '0';
+        await nextFrame();
+        if (introSkipped) return;
+        text.style.opacity = '1';
+        await wait(FADE_IN + (isLast ? 0 : Math.max(0, line.hold)));
+        if (introSkipped) return;
+        if (isLast) return;
+        text.style.opacity = '0';
+        await wait(FADE_OUT);
+        if (introSkipped) return;
+      }
+
+      const FIRST_LINE_DELAY = 400;
+
+      async function runIntro() {
+        await waitForAudioUnlock();
+        if (introSkipped) return;
+        await wait(FIRST_LINE_DELAY);
+        if (introSkipped) return;
+        try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (_) { }
+        for (let i = 0; i < LINES.length; i++) {
+          if (introSkipped) return;
+          const isLast = (i === LINES.length - 1);
+          await showLine(LINES[i], isLast);
+          if (isLast) break;
+          await wait(120);
+        }
+        if (introSkipped) return;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      }
+
+      async function loadSpriteAnimations() {
+        const loadAsset = async (jsonUrl, imgUrl) => {
+          const [j, img] = await Promise.all([
+            fetch(jsonUrl).then(r => r.json().catch(e => {
+              console.error(`JSON 파싱 오류 발생 파일: ${jsonUrl}`, e);
+              alert(`JSON 파일 오류: ${jsonUrl}\n\n${e.message}\n\n해당 파일의 ${e.lineNumber || '11'}번째 줄 근처에서 쉼표(,)가 빠졌는지 확인해주세요.`);
+              throw e;
+            })),
+            new Promise((res, rej) => {
+              const im = new Image();
+              im.onload = () => res(im);
+              im.onerror = () => rej(new Error('failed to load ' + imgUrl));
+              im.src = imgUrl;
+            })
+          ]);
+          const keys = Object.keys(j.frames || {});
+          if (!keys.length) throw new Error(jsonUrl + ' has no frames');
+          const frames = keys.map(k => ({ k, f: j.frames[k].frame })).sort((a, b) => (a.f.y - b.f.y) || (a.f.x - b.f.x)).map(x => x.f);
+          return { img, frames };
+        };
+
+        const [sleepAsset, frontAsset, backAsset, leftAsset, rightAsset] = await Promise.all([
+          loadAsset(SLEEP_JSON, SLEEP_IMG), loadAsset(FRONT_JSON, FRONT_IMG),
+          loadAsset(BACK_JSON, BACK_IMG), loadAsset(LEFT_JSON, LEFT_IMG),
+          loadAsset(RIGHT_JSON, RIGHT_IMG)
+        ]);
+
+        let intendAsset = null;
+        try { intendAsset = await loadAsset(INTEND_JSON, INTEND_IMG); } catch (e) { console.warn('Intend motion not found or invalid:', e); }
+
+        const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+        const cssSize = (window.matchMedia && window.matchMedia('(max-width: 420px)').matches) ? 64 : 96;
+        sleepCv.style.width = cssSize + 'px';
+        sleepCv.style.height = cssSize + 'px';
+        sleepCv.width = cssSize * dpr;
+        sleepCv.height = cssSize * dpr;
+        const sleepWrap = document.getElementById('sleepWrap');
+        sleepWrap.style.width = sleepWrap.style.height = cssSize + 'px';
+        charPos.x = window.innerWidth / 2;
+        charPos.y = window.innerHeight * 0.52;
+        sleepCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        sleepCtx.imageSmoothingEnabled = false;
+
+        let last = performance.now();
+
+        function draw() {
+          sleepCtx.clearRect(0, 0, cssSize, cssSize);
+          let asset = sleepAsset;
+          if (animState === 'intend' && intendAsset) { asset = intendAsset; }
+          else if (animState === 'controlled') {
+            if (charDir === 'front') asset = frontAsset;
+            else if (charDir === 'back') asset = backAsset;
+            else if (charDir === 'left') asset = leftAsset;
+            else if (charDir === 'right') asset = rightAsset;
+            if (!isMoving) animIdx = 0;
+          } else if (animState === 'game_transition') { asset = frontAsset; }
+          if (animIdx >= asset.frames.length) {
+            if (animState === 'sleep') animIdx = 0;
+            else animIdx = asset.frames.length - 1;
+          }
+          const fr = asset.frames[animIdx];
+          sleepCtx.drawImage(asset.img, fr.x, fr.y, fr.w, fr.h, 0, 0, cssSize, cssSize);
+        }
+
+        function tick(now) {
+          let fps = 1;
+          if (animState === 'intend' && intendAsset) fps = 12;
+          else if (animState === 'controlled') fps = 8;
+          const step = 1000 / fps;
+
+          if (animState === 'controlled') {
+            let dx = 0, dy = 0;
+            const speed = 3;
+            if (keys.w) dy -= 1; if (keys.s) dy += 1;
+            if (keys.a) dx -= 1; if (keys.d) dx += 1;
+            isMoving = (dx !== 0 || dy !== 0);
+            if (isMoving) {
+              if (dy > 0) charDir = 'front'; if (dy < 0) charDir = 'back';
+              if (dx < 0) charDir = 'left'; if (dx > 0) charDir = 'right';
+              charPos.x += dx * speed; charPos.y += dy * speed;
+              const panel = document.getElementById('introPanel').getBoundingClientRect();
+              const half = cssSize / 2;
+              charPos.x = Math.max(panel.left + half, Math.min(panel.right - half, charPos.x));
+              charPos.y = Math.max(panel.top + half, Math.min(panel.bottom - half, charPos.y));
+            }
+            sleepWrap.style.left = charPos.x + 'px';
+            sleepWrap.style.top = charPos.y + 'px';
+          }
+
+          if (now - last >= step) {
+            last = now;
+            if (animState === 'sleep' || (!intendAsset && animState === 'intend')) {
+              animIdx = (animIdx + 1) % sleepAsset.frames.length;
+            } else if (animState === 'intend') {
+              animIdx++;
+              if (animIdx >= intendAsset.frames.length) {
+                animIdx = intendAsset.frames.length - 1;
+                animState = 'game_transition';
+                animIdx = 0;
+                window.addEventListener('message', handleGameMessage);
+                if (volumeOn && !bgm.paused) {
+                  const fadeOut = setInterval(() => {
+                    if (bgm.volume > 0.05) bgm.volume -= 0.05;
+                    else { bgm.pause(); clearInterval(fadeOut); }
+                  }, 100);
+                }
+                setTimeout(() => {
+                  const gameFrame = document.getElementById('gameFrame');
+                  const sleepWrap = document.getElementById('sleepWrap');
+                  sleepWrap.style.transition = 'opacity 1s ease';
+                  sleepWrap.style.opacity = '0';
+                  gameFrame.src = "game/index.html?v=" + Date.now();
+                  gameFrame.onload = () => {
+                    gameFrame.classList.add('active');
+                    gameFrame.contentWindow.focus();
+                  };
+                }, 1000);
+              }
+            } else if (animState === 'controlled' && isMoving) {
+              let currentAsset = frontAsset;
+              if (charDir === 'back') currentAsset = backAsset;
+              if (charDir === 'left') currentAsset = leftAsset;
+              if (charDir === 'right') currentAsset = rightAsset;
+              animIdx = (animIdx + 1) % currentAsset.frames.length;
+            }
+            draw();
+          }
+          requestAnimationFrame(tick);
+        }
+
+        draw();
+        requestAnimationFrame(tick);
+
+        window.addEventListener('resize', () => {
+          const dpr2 = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+          const css2 = (window.matchMedia && window.matchMedia('(max-width: 420px)').matches) ? 64 : 96;
+          const sleepWrap = document.getElementById('sleepWrap');
+          sleepWrap.style.width = sleepWrap.style.height = css2 + 'px';
+          if (animState === 'sleep') { /* CSS handles centering */ }
+          sleepCv.style.width = css2 + 'px';
+          sleepCv.style.height = css2 + 'px';
+          sleepCv.width = css2 * dpr2;
+          sleepCv.height = css2 * dpr2;
+          sleepCtx.setTransform(dpr2, 0, 0, dpr2, 0, 0);
+          sleepCtx.imageSmoothingEnabled = false;
+          draw();
+        });
+      }
+
+      function handleGameMessage(e) {
+        if (!e.data || !e.data.type) return;
+        if (e.data.type === 'game_entered') {
+          unlockAchievement('game_start', '모험의 시작 (게임 접속)');
+          if (!bgm.paused) bgm.pause();
+          if (volumeOn) mapBgm.play().catch(() => { });
+        } else if (e.data.type === 'open_content') {
+          openContent(e.data.page);
+        }
+      }
+
+      const contentContainer = document.getElementById('contentContainer');
+      const contentFrame = document.getElementById('contentFrame');
+      const backBtn = document.getElementById('backBtn');
+      const gameFrame = document.getElementById('gameFrame');
+      const sleepWrap = document.getElementById('sleepWrap');
+      const creditDiv = document.getElementById('credit');
+      const introPanel = document.getElementById('introPanel');
+
+      function openContent(pageUrl) {
+        introPanel.style.display = 'none';
+        creditDiv.style.display = 'none';
+        sleepWrap.style.opacity = '0';
+        animState = 'game_transition';
+        contentContainer.style.display = 'flex';
+        contentFrame.src = pageUrl + "?t=" + Date.now();
+        contentFrame.onload = () => {
+          try {
+            const iframeDoc = contentFrame.contentDocument || contentFrame.contentWindow.document;
+            const scrollbarStyle = document.getElementById('iframe-scrollbar-style').innerHTML;
+            const styleElement = iframeDoc.createElement('style');
+            styleElement.textContent = scrollbarStyle;
+            iframeDoc.head.appendChild(styleElement);
+          } catch (e) {
+            console.warn("Could not apply custom scrollbar styles to iframe due to cross-origin policy:", e);
+          }
+        };
+      }
+
+      backBtn.addEventListener('click', () => {
+        contentContainer.style.display = 'none';
+        contentFrame.src = 'about:blank';
+        introPanel.style.display = 'block';
+        creditDiv.style.display = 'block';
+        gameFrame.contentWindow.focus();
+        sleepWrap.style.opacity = '0';
+        animState = 'game_transition';
+      });
+
+      setInterval(() => {
+        if (animState !== 'controlled') return;
+        const bubble = document.getElementById('speechBubble');
+        let msg;
+        let isFlag = false;
+        if (Math.random() < 0.03) {
+          msg = "flag{capture_this!!!}";
+          isFlag = true;
+        } else {
+          msg = TMIS[Math.floor(Math.random() * TMIS.length)];
+        }
+        bubble.innerText = msg;
+        if (isFlag) {
+          bubble.style.color = '#00bfff';
+          unlockAchievement('flag_found', '해커의 자질 (Hidden Flag)');
+        } else {
+          bubble.style.color = '#000';
+        }
+        bubble.style.display = 'block';
+        setTimeout(() => { bubble.style.display = 'none'; }, 5000);
+      }, 30000);
+
+      skipBtn.addEventListener('click', () => {
+        if (animState !== 'sleep') return;
+        introSkipped = true;
+        text.style.opacity = '0';
+        btn.style.opacity = '0';
+        btn.style.pointerEvents = 'none';
+        skipBtn.style.display = 'none';
+        document.getElementById('privacyNotice').style.display = 'none';
+        if (volumeOn) btnSfx.play().catch(() => { });
+        animState = 'game_transition';
+        animIdx = 0;
+        window.addEventListener('message', handleGameMessage);
+        const gameFrame = document.getElementById('gameFrame');
+        const sleepWrap = document.getElementById('sleepWrap');
+        sleepWrap.style.transition = 'opacity 0.5s ease';
+        sleepWrap.style.opacity = '0';
+        setTimeout(() => {
+          gameFrame.src = "game/index.html?v=" + Date.now();
+          gameFrame.onload = () => {
+            gameFrame.classList.add('active');
+            gameFrame.contentWindow.focus();
+          };
+        }, 100);
+      });
+
+      btn.addEventListener('click', () => {
+        btn.blur();
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0';
+        text.style.opacity = '0';
+        skipBtn.style.display = 'none';
+        if (volumeOn) btnSfx.play().catch(() => { });
+        setTimeout(() => {
+          animState = 'intend';
+          animIdx = 0;
+        }, 2000);
+      }, { passive: true });
+
+      volumeBtn.addEventListener('mouseenter', () => { if (volumeOn) { volumeImg.src = 'volume/volOff.png'; } });
+      volumeBtn.addEventListener('mouseleave', () => { volumeImg.src = volumeOn ? 'volume/volOn.png' : 'volume/volOff.png'; });
+      volumeBtn.addEventListener('click', () => {
+        volumeOn = !volumeOn;
+        sfx.volume = volumeOn ? 0.6 : 0;
+        bgm.volume = volumeOn ? 0.5 : 0;
+        mapBgm.volume = volumeOn ? 0.5 : 0;
+        btnSfx.volume = volumeOn ? 0.6 : 0;
+        achSfx.volume = volumeOn ? 0.6 : 0;
+        volumeImg.src = volumeOn ? 'volume/volOn.png' : 'volume/volOff.png';
+      });
+
+      loadSpriteAnimations().catch(err => { console.warn(err); });
+      runIntro();
+
+    })();
+  </script>
+
+</body>
+
+</html>

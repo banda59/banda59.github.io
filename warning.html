@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>WARNING</title>
+  <style>
+    @font-face {
+      font-family: 'omori1';
+      src: url('fonts/OMORI_GAME.ttf') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+    body {
+      background-color: #000;
+      color: #3700ff;
+      height: 100vh;
+      margin: 0;
+      padding: 40px;
+      overflow: hidden;
+      font-family: 'omori1', monospace;
+      user-select: none;
+    }
+    h1 {
+      font-size: clamp(40px, 10vw, 100px);
+      font-weight: normal;
+      text-align: left;
+      margin: 0;
+    }
+    img {
+      display: block;
+      margin-top: 30px;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>YOU SHOULDN'T HAVE DONE THAT.</h1>
+  <img src="sprites/badend.gif" alt="BAD END">
+  <audio id="bgm" src="sound/warning.mp3" autoplay loop></audio>
+  <script>
+    // Prevent going back
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+      history.go(1);
+    };
+
+    // Force Audio Play (Autoplay Policy Bypass)
+    const audio = document.getElementById('bgm');
+    
+    const tryPlay = () => {
+      audio.play().then(() => {
+        // Success: remove listeners
+        ['click', 'keydown', 'touchstart'].forEach(evt => 
+          document.removeEventListener(evt, tryPlay)
+        );
+      }).catch(() => {});
+    };
+
+    tryPlay(); // Try immediately
+    // Retry on any user interaction
+    ['click', 'keydown', 'touchstart'].forEach(evt => 
+      document.addEventListener(evt, tryPlay)
+    );
+  </script>
+</body>
+</html>

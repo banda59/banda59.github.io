@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact</title>
+    <style>
+        /* 폰트 로드 (wallpaper.html과 동일한 경로 기준) */
+        @font-face {
+            font-family: 'kyobo';
+            src: url('../fonts/KyoboHandwriting2024psw.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'omori2';
+            src: url('../fonts/OMORI_GAME2.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Sweet500';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Sweet600';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-SemiBold.woff2') format('woff2');
+            font-weight: 600;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Sweet900';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Heavy.woff2') format('woff2');
+            font-weight: 900;
+            font-display: swap;
+        }
+
+        /* 텍스트 드래그/선택 스타일 */
+        ::selection {
+            background-color: #ab96ff; /* 연한 보라색 */
+            color: #000; /* 선택된 텍스트 색상 */
+        }
+
+        ::-moz-selection { /* Firefox 브라우저 호환성 */
+            background-color: #ab96ff;
+            color: #000;
+        }
+
+        /* 기본 스타일 */
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'kyobo', 'Malgun Gothic', sans-serif;
+            font-size: 20px;
+            line-height: 1.6;
+            margin: 0;
+            padding: 2em;
+            text-align: center;
+        }
+
+        /* 메인 컨테이너 */
+        .contact-container {
+            max-width: 550px;
+            margin: 0 auto;
+            border: 1px solid #ab96ff;
+            padding: 2em;
+            /* OMORI 스타일의 그림자 효과 */
+            box-shadow: 
+                -2px 0 #ab96ff, 2px 0 #ab96ff,
+                0 -2px #ab96ff, 0 2px #ab96ff;
+            
+            /* 명함 배경 스타일 */
+            background-color: #0d0d0d; /* 살짝 어두운 회색 */
+            background-image: url('../sprites/paper_texture.jpg');
+            background-blend-mode: overlay; /* 텍스처와 배경색을 자연스럽게 혼합 */
+
+            /* 시작 상태를 투명하게 설정 */
+            opacity: 0;
+
+            /* 애니메이션 적용: pop-in 후 flicker 반복 */
+            animation: pop-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+                       flicker 15s infinite alternate 0.8s;
+        }
+
+        /* 튀어나오는 애니메이션 */
+        @keyframes pop-in {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                box-shadow: 
+                    -2px 0 #ab96ff, 2px 0 #ab96ff,
+                    0 -2px #ab96ff, 0 2px #ab96ff;
+            }
+            20%, 24%, 55% {
+                box-shadow: 
+                    -2px 0 #8c70e6, 2px 0 #8c70e6,
+                    0 -2px #8c70e6, 0 2px #8c70e6;
+            }
+        }
+
+        /* 명함 헤더 */
+        .card-header {
+            text-align: left;
+            margin-bottom: 2em;
+            border-bottom: 2px dotted #555;
+            padding-bottom: 1.5em;
+        }
+
+        .name {
+            font-family: 'Sweet900', sans-serif;
+            font-size: 32px;
+            color: #fff;
+            margin: 0;
+        }
+
+        .title {
+            font-family: 'Sweet500', sans-serif;
+            font-size: 18px;
+            color: #ccc;
+            margin-top: 8px;
+        }
+
+        /* 연락처 목록 */
+        .contact-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            font-family: 'Sweet600', sans-serif;
+        }
+
+        .contact-list li {
+            padding: 12px 15px;
+            border-bottom: 2px dotted #555;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .contact-list li:last-child {
+            border-bottom: none;
+        }
+
+        .contact-list li:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* 링크 스타일 */
+        .contact-list a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+        }
+
+        .contact-list .label {
+            display: inline-block;
+            width: 100px;
+            color: #999;
+            font-family: 'Sweet600', sans-serif;
+        }
+
+        .contact-list .value {
+            color: #6b6bff; /* OMORI 스타일의 강조색 */
+        }
+        
+        .contact-list .value:hover {
+            text-decoration: underline;
+        }
+
+        /* 하단 텍스트 */
+        .footer-text {
+            margin-top: 3em;
+            font-size: 16px;
+            color: #777;
+            font-family: 'Sweet600', sans-serif;
+        }
+
+        /* 하단 크레딧 */
+        .site-credit {
+            max-width: 600px;
+            margin: 3em auto 0;
+            font-family: 'omori2', sans-serif;
+            font-size: 25px;
+            color: #666;
+            line-height: 1;
+            text-align: left;
+            letter-spacing: 0.5px;
+        }
+
+        .site-credit p {
+            margin: 0.6em 0;
+        }
+
+        .site-credit .korean {
+            font-family: 'kyobo', sans-serif;
+            line-height: 1.5;
+            font-size: 20px;
+            margin-top: 2em;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="contact-container">
+        <div class="card-header">
+            <p class="name">방세연 Seyeon Bang</p>
+            <p class="title">B.S. in Cybersecurity | Security Researcher</p>
+        </div>
+
+        <ul class="contact-list">
+            <li>
+                <a href="mailto:banda@outlook.kr" target="_blank">
+                    <span class="label">EMAIL</span>
+                    <span class="value">banda@outlook.kr</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://github.com/banda59" target="_blank">
+                    <span class="label">GITHUB</span>
+                    <span class="value">github.com/banda59</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://b4nda.com/blog/" target="_blank">
+                    <span class="label">BLOG</span>
+                    <span class="value">https://b4nda.com/blog/</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.instagram.com/bandpwn" target="_blank">
+                    <span class="label">SNS</span>
+                    <span class="value">@bandpwn</span>
+                </a>
+            </li>
+        </ul>
+
+        <p class="footer-text">클릭하면 이동합니다.</p>
+    </div>
+
+    <div class="site-credit">
+        <p>This site is built upon the RPGMaker MZ engine.</p>
+        <p>The design and concept are heavily inspired by OMORI, but are not affiliated with its universe or story. All graphical and code assets, excluding the SFX, were developed by me.</p>
+        <p>If you have any concerns regarding this, please feel free to contact me. I am always open to making changes.</p>
+        <div class="korean">
+            <p>본 사이트는 RPGMaker MZ를 통해 제작되었습니다.</p>
+            <p>또한 omori의 영감을 받아 제작되었으나, omori 세계관과는 전혀 무관하며 sfx를 제외한 모든 부분은 직접 제작, 개발함을 밝힙니다. 혹시나 이와 같은 부분에 대해 이의가 있으시면 언제든 연락 주세요! 저는 언제든 바꿀 준비가 되어 있습니다.</p>
+            <br><br><br><br><br>
+        </div>
+    </div>
+
+</body>
+</html>
