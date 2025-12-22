@@ -66,6 +66,8 @@
 
         /* 메인 컨테이너 */
         .contact-container {
+            --final-scale: 1; /* 최종 크기를 위한 CSS 변수 */
+
             max-width: 550px;
             margin: 0 auto;
             border: 1px solid #ab96ff;
@@ -96,7 +98,7 @@
             }
             to {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: scale(var(--final-scale)) translateY(0);
             }
         }
 
@@ -213,7 +215,20 @@
             font-size: 20px;
             margin-top: 2em;
         }
+        
+        /* 캐릭터 애니메이션 컨테이너 */
+        .character-animation-container {
+            margin-top: 3em;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10em;
+        }
 
+        #contact-char-canvas {
+            width: 96px;
+            height: 96px;
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body>
@@ -260,10 +275,77 @@
         <p>If you have any concerns regarding this, please feel free to contact me. I am always open to making changes.</p>
         <div class="korean">
             <p>본 사이트는 RPGMaker MZ를 통해 제작되었습니다.</p>
-            <p>또한 omori의 영감을 받아 제작되었으나, omori 세계관과는 전혀 무관하며 sfx를 제외한 모든 부분은 직접 제작, 개발함을 밝힙니다. 혹시나 이와 같은 부분에 대해 이의가 있으시면 언제든 연락 주세요! 저는 언제든 바꿀 준비가 되어 있습니다.</p>
-            <br><br><br><br><br>
+            <p>또한 omori의 영감을 받아 제작되었으나, omori 세계관과는 전혀 무관하며 sfx를 제외한 모든 부분은 직접 제작, 개발함을 밝힙니다. 혹시나 이와 같은 부분에 대해 이의가 있으시면 언제든 연락 주세요! 저는 언제든 개선한 사이트를 마련할 준비가 되었습니다.</p>
+            <br>
         </div>
     </div>
+
+    <div class="character-animation-container">
+        <canvas id="contact-char-canvas"></canvas>
+    </div>
+
+    <script>
+        (() => {
+            'use strict';
+
+            const CONTACT_JSON = '../motion/contact.json';
+            const CONTACT_IMG = '../motion/contact.png';
+
+            const canvas = document.getElementById('contact-char-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let contactAsset;
+            let animIdx = 0;
+            let lastFrameTime = performance.now();
+            const cssSize = 96;
+            const fps = 8;
+
+            const loadAsset = async (jsonUrl, imgUrl) => {
+                const [j, img] = await Promise.all([
+                    fetch(jsonUrl).then(r => r.json()),
+                    new Promise((res, rej) => {
+                        const im = new Image();
+                        im.onload = () => res(im);
+                        im.onerror = () => rej(new Error('failed to load ' + imgUrl));
+                        im.src = imgUrl;
+                    })
+                ]);
+                const keys = Object.keys(j.frames || {});
+                if (!keys.length) throw new Error(jsonUrl + ' has no frames');
+                const frames = keys.map(k => ({ k, f: j.frames[k].frame })).sort((a, b) => (a.f.y - b.f.y) || (a.f.x - b.f.x)).map(x => x.f);
+                return { img, frames };
+            };
+
+            const runAnimation = (asset) => {
+                contactAsset = asset;
+                const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+                canvas.width = cssSize * dpr;
+                canvas.height = cssSize * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.imageSmoothingEnabled = false;
+
+                function tick(now) {
+                    const step = 1000 / fps;
+                    if (now - lastFrameTime >= step) {
+                        lastFrameTime = now;
+                        animIdx = (animIdx + 1) % contactAsset.frames.length;
+                        
+                        ctx.clearRect(0, 0, cssSize, cssSize);
+                        const fr = contactAsset.frames[animIdx];
+                        ctx.drawImage(contactAsset.img, fr.x, fr.y, fr.w, fr.h, 0, 0, cssSize, cssSize);
+                    }
+                    requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            };
+
+            loadAsset(CONTACT_JSON, CONTACT_IMG)
+                .then(runAnimation)
+                .catch(err => console.error("Failed to load contact animation:", err));
+
+        })();
+    </script>
 
 </body>
 </html>

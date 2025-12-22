@@ -4,36 +4,6 @@
 <head>
   <meta charset="utf-8" />
   <script>
-    // Security Filter (Simulation)
-    try {
-      let currentUrl = window.location.href;
-      for (let i = 0; i < 3; i++) {
-        try { currentUrl = decodeURIComponent(currentUrl); } catch (e) { break; }
-      }
-      const target = currentUrl.toLowerCase();
-      const threats = [
-        /union[\s\+]+select/i, /select[\s\+]+.*from/i,
-        /(insert|update|delete|replace|truncate)[\s\+]+.*(into|set|from|table)/i,
-        /drop[\s\+]+(table|database|view|index)/i, /--|\#|\/\*|;/,
-        /benchmark\(|sleep\(|waitfor\s+delay/i, /or\s+1=1/i, /<script/i, /<\/script/i,
-        /(javascript|vbscript|jscript|livescript):/i, /data:(text|application)\//i,
-        /on(load|error|click|dblclick|mouseover|mouseout|focus|blur|change|submit|reset|keydown|keypress|keyup)\s*=/i,
-        /(alert|confirm|prompt|eval|setTimeout|setInterval|function)\s*\(/i,
-        /&#[x0-9a-f]+;/i, /document\.(cookie|domain|location|write|body)/i,
-        /window\.(location|opener|parent|history)/i,
-        /<(iframe|object|embed|applet|meta|link|style|base|form)/i,
-        /\.\.[\/\\]/, /\/etc\/(passwd|shadow|group|hosts)/i,
-        /c:\\(windows|winnt|system32)/i, /boot\.ini|win\.ini/i, /%00/,
-        /(file|gopher|php|expect|zip|phar):\/\//i,
-        /(cmd|bash|sh|powershell|perl|python)\.(exe|sh|pl|py)/i,
-        /(^|[^\w])(cat|ls|dir|type|net|whoami|ipconfig|ifconfig|curl|wget|nc|netcat)[\s\+]/i,
-        /\.(env|git|svn|htaccess|htpasswd|ssh|bak|old|log|conf|config|ini)/i,
-        /(admin|root|login|signin|signup|dashboard|cpanel|setup|install)/i
-      ];
-      if (threats.some(pattern => pattern.test(target))) {
-        window.location.replace('warning.html');
-      }
-    } catch (e) { /* ignore encoding errors */ }
   </script>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="style.css" />
@@ -258,6 +228,8 @@
       background-color: rgba(0, 0, 0, 0.7);
       padding: 4px 12px;
       border-radius: 10px;
+
+      transition: font-size 0.3s ease;
     }
 
     #portfolio-logo {
@@ -323,49 +295,28 @@
       }
     }
 
-    #mobileControls {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 30;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      opacity: 0.6;
+    body.is-mobile #instructionText {
+      display: none !important;
     }
 
-    .dpad-row {
-      display: flex;
-      gap: 8px;
+    body.is-mobile #credit {
+      font-size: 13px;
     }
 
-    #mobileControls button {
-      width: 56px;
-      height: 56px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      color: #fff;
-      font-size: 24px;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-      padding: 0;
+    body.is-mobile #portfolio-logo img {
+      width: min(70vw, 300px);
     }
 
-    #mobileControls button:active {
-      background: rgba(255, 255, 255, 0.4);
+    body.is-mobile #contentWindow {
+      width: 92vw;
+      height: 85vh;
     }
 
-    @media (hover: none) and (pointer: coarse) {
-      #mobileControls {
-        display: flex;
-      }
-
-      #instructionText {
-        display: none !important;
-      }
+    body.is-mobile #contentFrame {
+      transform: scale(0.75);
+      transform-origin: 0 0;
+      width: 133.33%;
+      height: 133.33%;
     }
 
     #speechBubble {
@@ -491,24 +442,19 @@
   right: var(--pad);
   bottom: var(--pad);
   z-index:40;
-
-  display:flex;
-  align-items:flex-end;
-  gap: var(--gap);
-
+  width: clamp(160px, 18vw, 280px);
+  height: clamp(220px, 25vh, 360px);
   pointer-events:none;
   transform: translateZ(0);
 }
 
 #sideBanda{
-  width: clamp(140px, 15vw, 220px);
-  height: clamp(190px, 22vh, 320px);
-
+  width: 100%;
+  height: 100%;
   background-image: url('sprites/side_banda.png');
   background-repeat:no-repeat;
   background-position:right bottom;
   background-size:contain;
-
   image-rendering:pixelated;
   pointer-events:none;
   transform: translateZ(0);
@@ -516,23 +462,19 @@
 }
 
 #backBtn{
+  position: absolute;
+  right: clamp(10px, 2vw, 20px);
+  bottom: clamp(10px, 2vh, 20px);
   pointer-events:auto;
 
   padding: clamp(8px, 1.0vw, 12px) clamp(10px, 1.2vw, 18px);
-  background: transparent;
+  background: #000;
   border: 2px solid #fff;
-  box-shadow: 0 0 0 2px #000 inset;
 
   color:#fff;
   font-family:'kyobo', monospace;
   font-size: clamp(14px, 1.6vw, 20px);
   letter-spacing: 1px;
-
-  text-shadow:
-    -2px 0 #000, 2px 0 #000,
-    0 -2px #000, 0 2px #000,
-    -2px -2px #000, 2px -2px #000,
-    -2px 2px #000, 2px 2px #000;
 
   cursor:pointer;
   user-select:none;
@@ -605,16 +547,6 @@
       <button id="skipBtn">인트로 스킵 &gt;&gt;</button>
     </div>
 
-    <!-- Mobile Controls -->
-    <div id="mobileControls">
-      <div class="dpad-row"><button id="btnUp">▲</button></div>
-      <div class="dpad-row">
-        <button id="btnLeft">◀</button>
-        <button id="btnDown">▼</button>
-        <button id="btnRight">▶</button>
-      </div>
-    </div>
-
     <div id="sleepWrap" aria-hidden="true">
       <canvas id="sleepCv"></canvas>
       <div id="speechBubble"></div>
@@ -627,12 +559,11 @@
       <iframe id="contentFrame"></iframe>
     
       <div id="uiLayer">
-        <button id="backBtn">돌아가기</button>
         <div id="sideBanda"></div>
+        <button id="backBtn">돌아가기</button>
       </div>
     </div>
   </div>
-
 
   <script>
     (() => {
@@ -1084,25 +1015,84 @@
       let isMoving = false;
       const keys = { w: false, a: false, s: false, d: false };
 
+      function checkMobileView() {
+        if (window.innerWidth <= 768) {
+          document.body.classList.add('is-mobile');
+        } else {
+          document.body.classList.remove('is-mobile');
+        }
+      }
+
       function unlockAudioOnce() {
         if (audioUnlocked) return;
         audioUnlocked = true;
         sfx.play().then(() => { sfx.pause(); sfx.currentTime = 0; }).catch(() => { });
       }
 
-      window.addEventListener("pointerdown", unlockAudioOnce, { once: true });
+      window.addEventListener("pointerdown", unlockAudioOnce, { once: true });      
 
-      window.addEventListener('keydown', e => { const k = e.key.toLowerCase(); if (keys.hasOwnProperty(k)) keys[k] = true; });
-      window.addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (keys.hasOwnProperty(k)) keys[k] = false; });
+      window.addEventListener('keydown', e => {
+        const k = e.key.toLowerCase();
+        if (keys.hasOwnProperty(k)) {
+            keys[k] = true; // For intro character movement
+        }
 
-      const dpadMap = [{ id: 'btnUp', k: 'w' }, { id: 'btnDown', k: 's' }, { id: 'btnLeft', k: 'a' }, { id: 'btnRight', k: 'd' }];
-      dpadMap.forEach(item => {
-        const el = document.getElementById(item.id);
-        if (!el) return;
-        const setKey = (state) => { keys[item.k] = state; };
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); setKey(true); el.style.background = 'rgba(255,255,255,0.4)'; }, { passive: false });
-        el.addEventListener('touchend', (e) => { e.preventDefault(); setKey(false); el.style.background = ''; }, { passive: false });
+        const gameFrame = document.getElementById('gameFrame');
+        // If the game is active, forward the key press to the iframe.
+        if (gameFrame.classList.contains('active')) {
+            // Prevent default browser actions for game keys (like scrolling).
+            if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'enter', ' '].includes(k)) {
+                e.preventDefault();
+            }
+            dispatchKeyEventToGame('keydown', e.key);
+        }
       });
+
+      window.addEventListener('keyup', e => {
+          const k = e.key.toLowerCase();
+          if (keys.hasOwnProperty(k)) {
+              keys[k] = false; // For intro character movement
+          }
+          
+          const gameFrame = document.getElementById('gameFrame');
+          if (gameFrame.classList.contains('active')) {
+              dispatchKeyEventToGame('keyup', e.key);
+          }
+      });
+      const keyEventProps = (key) => {
+          const upperKey = key.toUpperCase();
+          let code = `Key${upperKey}`;
+          let keyCode = upperKey.charCodeAt(0);
+
+          if (key === 'Enter') {
+              code = 'Enter';
+              keyCode = 13;
+          } else if (key === ' ') {
+              code = 'Space';
+              keyCode = 32;
+          } else if (key === 'Escape') {
+              code = 'Escape';
+              keyCode = 27;
+          }
+          
+          return { key: key, code: code, keyCode: keyCode, which: keyCode, bubbles: true, cancelable: true };
+      };
+
+      const dispatchKeyEventToGame = (type, key) => {
+        const gameFrame = document.getElementById('gameFrame');
+        if (!gameFrame || !gameFrame.contentWindow || !gameFrame.classList.contains('active')) {
+            return;
+        }
+        
+        // Re-focus the iframe's content window. This is crucial as clicks/touches
+        // on the parent page can steal focus from the game.
+          gameFrame.contentWindow.focus();
+        // Use a minimal timeout to ensure the focus event has been processed
+        // before we dispatch the key event. This helps prevent a race condition.
+        setTimeout(() => {
+            gameFrame.contentWindow.document.dispatchEvent(new KeyboardEvent(type, keyEventProps(key)));
+        }, 0);
+      };
 
       function playSfx() {
         if (!audioUnlocked || introSkipped) return;
@@ -1292,6 +1282,7 @@
         requestAnimationFrame(tick);
 
         window.addEventListener('resize', () => {
+          checkMobileView();
           const dpr2 = Math.max(1, Math.floor(window.devicePixelRatio || 1));
           const css2 = (window.matchMedia && window.matchMedia('(max-width: 420px)').matches) ? 64 : 96;
           const sleepWrap = document.getElementById('sleepWrap');
@@ -1336,12 +1327,34 @@
         contentFrame.onload = () => {
           try {
             const iframeDoc = contentFrame.contentDocument || contentFrame.contentWindow.document;
+
+            // Ensure viewport meta tag is present for proper mobile scaling
+            let viewport = iframeDoc.querySelector('meta[name="viewport"]');
+            if (!viewport) {
+              viewport = iframeDoc.createElement('meta');
+              viewport.name = 'viewport';
+              iframeDoc.head.prepend(viewport);
+            }
+            viewport.content = 'width=device-width, initial-scale=1.0';
+
             const scrollbarStyle = document.getElementById('iframe-scrollbar-style').innerHTML;
+            let customStyles = scrollbarStyle;
+
+            // 모바일이고 contact 페이지일 경우, 명함 크기를 줄이는 스타일을 직접 주입합니다.
+            // 이 방법이 미디어 쿼리보다 안정적일 수 있습니다.
+            if (document.body.classList.contains('is-mobile') && pageUrl.includes('/contact/')) {
+              customStyles += `
+                .contact-container {
+                  --final-scale: 0.5; /* 명함 크기를 더 작게 조정 */
+                  margin-top: -25% !important; /* 스케일 축소에 따른 상단 여백 보정 */
+                }
+              `;
+            }
             const styleElement = iframeDoc.createElement('style');
-            styleElement.textContent = scrollbarStyle;
+            styleElement.textContent = customStyles;
             iframeDoc.head.appendChild(styleElement);
           } catch (e) {
-            console.warn("Could not apply custom scrollbar styles to iframe due to cross-origin policy:", e);
+            console.warn("Could not apply custom styles to iframe due to cross-origin policy:", e);
           }
         };
       }
@@ -1430,6 +1443,7 @@
 
       loadSpriteAnimations().catch(err => { console.warn(err); });
       runIntro();
+      checkMobileView();
 
     })();
   </script>
