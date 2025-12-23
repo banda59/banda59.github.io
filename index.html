@@ -8,14 +8,18 @@
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="index.css" />
   <title>Banda's Portfolio</title>
+  <link rel="icon" href="sprites/icon.png" type="image/png">
+  <link rel="shortcut icon" href="sprites/icon.png" type="image/png">
+
   <meta name="description" content="Welcome to black space. This is Banda's portfolio." />
 
   <!-- Open Graph / Facebook Meta Tags -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="portfolio" />
-  <meta property="og:description" content="Welcome.⭐" />
-  <meta property="og:image" content="https://b4nda.com/sprites/icon.png" />
+  <!-- 중요: content의 URL을 실제 배포된 사이트의 전체 주소로 정확하게 수정해야 합니다. -->
   <meta property="og:url" content="https://b4nda.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Banda's Portfolio" />
+  <meta property="og:description" content="Welcome to black space. This is Banda's portfolio." />
+  <meta property="og:image" content="https://b4nda.com/sprites/icon.png" />
 
     <style>
       /* OMORI-style Scrollbar */
@@ -57,8 +61,8 @@
       </div>
       <div id="introText" class="fade"></div>
       <button id="introBtn" type="button" aria-label="Start" disabled>Ok, I&#39;ll do that.</button>
-      <div id="privacyNotice">이 사이트는 귀하의 개인정보나 쿠키를 수집하지 않습니다.</div>
-      <div id="privacyNotice">이 사이트는 PC 환경에 최적화되어 있습니다.</div>
+      <div class="privacyNotice" id="privacyNotice1">이 사이트는 귀하의 개인정보나 쿠키를 수집하지 않습니다.</div>
+      <div class="privacyNotice" id="privacyNotice2">이 사이트는 PC 환경에 최적화되어 있습니다.</div>
       <div id="achievementPopup">
         <div class="ach-title">ACHIEVEMENT UNLOCKED</div>
         <div class="ach-desc"></div>

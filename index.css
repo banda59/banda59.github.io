@@ -220,7 +220,7 @@ canvas {
   }
 }
 
-#privacyNotice {
+.privacyNotice {
   position: absolute;
   bottom: 12px;
   left: 0;
@@ -231,8 +231,18 @@ canvas {
   font-size: clamp(11px, 2vw, 14px);
   pointer-events: none;
   opacity: 0;
-  animation: privacyFade 6s ease-in-out forwards;
+  animation-name: privacyFade;
+  animation-duration: 6s;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+#privacyNotice1 {
   animation-delay: 0.5s;
+}
+
+#privacyNotice2 {
+  animation-delay: 6.5s; /* 첫 번째 메시지가 사라진 후 나타납니다. */
 }
 
 @keyframes privacyFade {
