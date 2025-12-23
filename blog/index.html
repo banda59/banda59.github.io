@@ -1,1 +1,68 @@
-준비 중입니다.
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>banda log</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="blog.css">
+    <style>
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            .blog-container {
+                /* flex-direction을 column으로 변경하여 세로로 쌓이도록 합니다. */
+                flex-direction: column;
+            }
+
+            .sidebar {
+                /* 사이드바 너비를 100%로 설정하고, 오른쪽 테두리를 제거합니다. */
+                width: 100%;
+                border-right: none;
+                /* 하단에 구분선을 추가합니다. */
+                border-bottom: 1px solid #eee;
+                margin-bottom: 20px;
+                padding-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="blog-container">
+        <aside class="sidebar">
+            <div class="profile-section">
+                <img src="../sprites/profile.jpg" alt="Profile Picture" class="profile-picture">
+                <h1 class="name">banda log</h1>
+                <p class="tagline">CyberSec</p>
+            </div>
+
+            <nav class="categories">
+                <h2 class="sidebar-title">Categories</h2>
+                <ul>
+                    <li><a href="./index.html?tag=Windows">Windows</a></li>
+                    <li><a href="./index.html?tag=WebHacking">WebHacking</a></li>
+                    <li><a href="./index.html?tag=Pwnable">Pwnable</a></li>
+                    <li><a href="./index.html?tag=Rev">Rev</a></li>
+                    <li><a href="./index.html?tag=CTF">CTF</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h2 class="page-title" id="pageTitle">Recent Posts</h2>
+
+            <div class="post-list" id="postList">
+                <!-- posts.json 기반으로 app.js가 여기를 채운다 -->
+            </div>
+
+            <noscript>
+                <p>자바스크립트가 꺼져 있어서 글 목록을 표시할 수 없다.</p>
+            </noscript>
+        </main>
+    </div>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>

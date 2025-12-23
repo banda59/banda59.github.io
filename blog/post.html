@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../blog.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            .single-post-container .main-content {
+                /* 모바일 화면에 맞게 좌우 패딩을 줄입니다. */
+                padding: 20px 15px;
+            }
+
+            .post-title-full {
+                /* 제목 폰트 크기를 모바일에 맞게 조정합니다. */
+                font-size: 2em;
+            }
+
+            .post-content {
+                /* 본문 폰트 크기와 줄 간격을 조정하여 가독성을 높입니다. */
+                font-size: 1em;
+                line-height: 1.7;
+            }
+
+            /* 코드 블록이 가로 스크롤되도록 설정합니다. */
+            .post-content pre {
+                white-space: pre;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="single-post-container">
+        <main class="main-content">
+            <article class="post-full">
+                <header class="post-header">
+                    <a href="../index.html" class="back-to-list">&larr; Back to List</a>
+
+                    <h1 class="post-title-full">{{title}}</h1>
+
+                    <p class="post-meta">
+                        <time datetime="{{date}}">{{date_human}}</time> | By Banda |
+                        <span class="post-tags">
+                            {{tags_html}}
+                        </span>
+                    </p>
+                </header>
+
+                <section class="post-content">
+                    {{content}}
+                </section>
+            </article>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.hljs) hljs.highlightAll();
+        });
+    </script>
+</body>
+
+</html>

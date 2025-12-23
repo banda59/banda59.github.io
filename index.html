@@ -6,493 +6,8 @@
   <script>
   </script>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="index.css" />
   <title>wallpaper</title>
-  <style>
-    * {
-      cursor: url(https://cur.cursors-4u.net/cursors/cur-9/cur266.cur), auto !important;
-    }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      background: #000;
-      overflow: hidden;
-    }
-
-    canvas {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      display: block;
-    }
-
-    #intro {
-      position: fixed;
-      inset: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-    }
-
-    #introPanel {
-      position: relative;
-      width: min(90vw, 1280px, 128vh);
-      height: min(80vh, 800px, 56.25vw);
-      background: #000;
-      border: 1px solid #fff;
-      box-shadow: none;
-      transition: opacity 900ms ease, background-color 900ms ease, border-color 900ms ease, width 0.5s ease, height 0.5s ease;
-      opacity: 1;
-    }
-
-    #introText {
-      position: absolute;
-      left: 50%;
-      top: 38%;
-      transform: translate(-50%, -50%);
-      width: min(74vw, 860px);
-      text-align: center;
-      font-family: 'omori2', 'kyobo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: clamp(18px, 2.8vw, 34px);
-      line-height: 1.0;
-      letter-spacing: 0.5px;
-      color: #fff;
-      opacity: 0;
-      transition: opacity 900ms ease;
-      user-select: none;
-      white-space: pre-line;
-    }
-
-    #introText .hl {
-      color: #6b6bff;
-    }
-
-    #introText .hl-cherry {
-      color: #ff33cc;
-    }
-
-    #introBtn {
-      position: absolute;
-      left: 50%;
-      top: 72%;
-      transform: translate(-50%, -50%);
-      padding: 10px 20px;
-      background: transparent;
-      border: 2px solid #ab96ff;
-      color: #be92ff;
-      font-family: 'omori2', 'kyobo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: clamp(20px, 2.5vw, 26px);
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 650ms ease;
-      pointer-events: none;
-    }
-
-    #introBtn:hover {
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    #introBtn:disabled {
-      cursor: default;
-    }
-
-    #instructionText {
-      position: absolute;
-      bottom: 40px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      color: #888;
-      font-family: 'omori2', 'kyobo', monospace;
-      font-size: clamp(24px, 3.5vw, 32px);
-      pointer-events: none;
-      display: none;
-      animation: blink 2s infinite ease-in-out;
-    }
-
-    #skipBtn {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      padding: 8px 12px;
-      background: transparent;
-      border: 1px solid #888;
-      color: #888;
-      font-family: 'kyobo', monospace;
-      font-size: 14px;
-      cursor: pointer;
-      display: none;
-      /* Initially hidden */
-      z-index: 16;
-      transition: color 0.2s, border-color 0.2s;
-    }
-
-    #skipBtn:hover {
-      color: #fff;
-      border-color: #fff;
-    }
-
-    @keyframes blink {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.3;
-      }
-    }
-
-    #privacyNotice {
-      position: absolute;
-      bottom: 12px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      color: #666;
-      font-family: 'kyobo', monospace;
-      font-size: clamp(11px, 2vw, 14px);
-      pointer-events: none;
-      opacity: 0;
-      animation: privacyFade 6s ease-in-out forwards;
-      animation-delay: 0.5s;
-    }
-
-    @keyframes privacyFade {
-      0% {
-        opacity: 0;
-      }
-
-      15% {
-        opacity: 1;
-      }
-
-      85% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-      }
-    }
-
-    #sleepWrap {
-      position: fixed;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      z-index: 11;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      width: var(--sleepSize, 96px);
-      height: var(--sleepSize, 96px);
-
-      pointer-events: none;
-      opacity: 1;
-    }
-
-    #sleepCv {
-      width: 100%;
-      height: 100%;
-      display: block;
-      image-rendering: pixelated;
-    }
-
-    #credit {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 16px;
-      z-index: 15;
-
-      text-align: center;
-      font-family: 'omori2', 'kyobo', monospace;
-      font-size: 28px;
-      color: #c4b9ff;
-
-      pointer-events: none;
-      user-select: none;
-
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 4px 12px;
-      border-radius: 10px;
-
-      transition: font-size 0.3s ease;
-    }
-
-    #portfolio-logo {
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      margin-bottom: 5px;
-      z-index: 15;
-      pointer-events: none;
-      user-select: none;
-    }
-
-    #portfolio-logo img {
-      display: block;
-      width: 400px;
-      margin-bottom: 5px;
-    }
-
-    #volumeBtn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 20;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.1s ease;
-      user-select: none;
-      padding: 0;
-    }
-
-    #volumeBtn img {
-      width: 80px;
-      height: 80px;
-    }
-
-    #volumeBtn:active {
-      transform: scale(0.9);
-    }
-
-    #intro.cleared {
-      pointer-events: none;
-    }
-
-    #intro.cleared #introPanel {
-      opacity: 0;
-      border-color: rgba(255, 255, 255, 0.0);
-      background: rgba(0, 0, 0, 0.0);
-    }
-
-    #intro.cleared #introText,
-    #intro.cleared #introBtn {
-      opacity: 0;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-
-      #introText,
-      #introPanel,
-      #introBtn {
-        transition: none;
-      }
-    }
-
-    body.is-mobile #instructionText {
-      display: none !important;
-    }
-
-    body.is-mobile #credit {
-      font-size: 13px;
-    }
-
-    body.is-mobile #portfolio-logo img {
-      width: min(70vw, 300px);
-    }
-
-    body.is-mobile #contentWindow {
-      width: 92vw;
-      height: 85vh;
-    }
-
-    body.is-mobile #contentFrame {
-      transform: scale(0.75);
-      transform-origin: 0 0;
-      width: 133.33%;
-      height: 133.33%;
-    }
-
-    #speechBubble {
-      position: absolute;
-      bottom: 105%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff;
-      border: 2px solid #000;
-      padding: 6px 10px;
-      color: #000;
-      font-family: 'kyobo', monospace;
-      font-size: 14px;
-      white-space: nowrap;
-      display: none;
-      z-index: 100;
-      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
-      image-rendering: pixelated;
-      pointer-events: none;
-    }
-
-    #speechBubble::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      margin-left: -6px;
-      border-width: 6px;
-      border-style: solid;
-      border-color: #000 transparent transparent transparent;
-    }
-
-    #achievementPopup {
-      position: absolute;
-      top: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(90%, 360px);
-      background: #000;
-      border: 2px solid #fff;
-      padding: 12px;
-      z-index: 200;
-      text-align: center;
-      transition: top 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.5s ease;
-      box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
-      pointer-events: none;
-      opacity: 0;
-    }
-
-    #achievementPopup.show {
-      top: 20px;
-      opacity: 1;
-    }
-
-    .ach-title {
-      color: #ccff00;
-      font-family: 'omori2', monospace;
-      font-size: 18px;
-      margin-bottom: 6px;
-      letter-spacing: 1px;
-    }
-
-    .ach-desc {
-      color: #fff;
-      font-family: 'kyobo', monospace;
-      font-size: 16px;
-    }
-
-    #gameFrame {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      opacity: 0;
-      transition: opacity 3s ease;
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    #gameFrame.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* Content Overlay */
-    #contentContainer {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
-#contentWindow {
-  --sbw: clamp(110px, 12vw, 170px);
-  --pad: clamp(12px, 1.4vw, 22px);
-  width: min(90vw, 1280px);
-  height: min(80vh, 800px);
-  background: #000;
-  border: 2px solid #fff;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-#contentFrame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  z-index: 10;
-}
-
-#uiLayer{
-  position:absolute;
-  right: var(--pad);
-  bottom: var(--pad);
-  z-index:40;
-  width: clamp(160px, 18vw, 280px);
-  height: clamp(220px, 25vh, 360px);
-  pointer-events:none;
-  transform: translateZ(0);
-}
-
-#sideBanda{
-  width: 100%;
-  height: 100%;
-  background-image: url('sprites/side_banda.png');
-  background-repeat:no-repeat;
-  background-position:right bottom;
-  background-size:contain;
-  image-rendering:pixelated;
-  pointer-events:none;
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-#backBtn{
-  position: absolute;
-  right: clamp(10px, 2vw, 20px);
-  bottom: clamp(10px, 2vh, 20px);
-  pointer-events:auto;
-
-  padding: clamp(8px, 1.0vw, 12px) clamp(10px, 1.2vw, 18px);
-  background: #000;
-  border: 2px solid #fff;
-
-  color:#fff;
-  font-family:'kyobo', monospace;
-  font-size: clamp(14px, 1.6vw, 20px);
-  letter-spacing: 1px;
-
-  cursor:pointer;
-  user-select:none;
-  image-rendering:pixelated;
-
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-#backBtn:hover{
-  transform: translateY(-1px) translateZ(0);
-}
-#backBtn:active{
-  transform: translateY(1px) translateZ(0);
-}
-
-
-  </style>
   <template id="iframe-scrollbar-style">
     <style>
       /* OMORI-style Scrollbar */
@@ -519,9 +34,7 @@
 
 <body>
   <canvas id="c"></canvas>
-  <a href="https://www.cursors-4u.com/cursor/2011/12/01/light-blue-pointer-2.html" target="_blank"
-    title="Light Blue Pointer"><img src="https://cur.cursors-4u.net/cursor.png" border="0" alt="Light Blue Pointer"
-      style="position:absolute; top: 0px; right: 0px;" /></a>
+  <a href="https://www.cursors-4u.com/cursor/2011/11/26/shiny-grey-star.html" target="_blank" title="Shiny Grey Star"><img src="https://cur.cursors-4u.net/cursor.png" border="0" alt="Shiny Grey Star" style="position:absolute; top: 0px; right: 0px;" /></a>
   <button id="volumeBtn" aria-label="Toggle Volume"><img id="volumeImg" src="volume/volOn.png" alt="Volume"></button>
   <div id="credit">
     © Artwork all made by banda.<br>
@@ -536,7 +49,7 @@
       </div>
       <div id="introText" class="fade"></div>
       <button id="introBtn" type="button" aria-label="Start" disabled>Ok, I&#39;ll do that.</button>
-      <div id="instructionText">- Use WASD keys to move -</div>
+      <div id="instructionText">WASD 키로 이동하세요</div>
       <div id="privacyNotice">이 사이트는 귀하의 개인정보나 쿠키를 수집하지 않습니다.</div>
       <div id="achievementPopup">
         <div class="ach-title">ACHIEVEMENT UNLOCKED</div>
@@ -902,6 +415,27 @@
     (() => {
       'use strict';
 
+      // 랜덤 재생할 음악 목록
+      const MUSIC_FILES = [
+        "background_ost/soundtrack01.mp3",
+        "background_ost/soundtrack02.mp3",
+        "background_ost/soundtrack03.mp3",
+        "background_ost/soundtrack04.mp3",
+        "background_ost/soundtrack05.mp3",
+        // 여기에 page/music 폴더에 있는 음악 파일들을 추가하세요.
+      ];
+      let currentAudio = null;
+
+      function playRandomMusic() {
+        if (currentAudio) currentAudio.pause();
+        if (!volumeOn || MUSIC_FILES.length === 0) return;
+        const musicFile = MUSIC_FILES[Math.floor(Math.random() * MUSIC_FILES.length)];
+        currentAudio = new Audio(musicFile);
+        currentAudio.volume = 0.5;
+        currentAudio.play().catch(e => console.error("음악 재생 오류:", e));
+        currentAudio.onended = playRandomMusic; // 한 곡이 끝나면 다른 랜덤 곡 재생
+      }
+
       const SLEEP_JSON = 'motion/sleep.json';
       const SLEEP_IMG = 'motion/sleep.png';
       const INTEND_JSON = 'motion/introend.json';
@@ -979,9 +513,6 @@
       const bgm = new Audio("sound/FishSong.mp3");
       bgm.loop = true;
       bgm.volume = 0.5;
-      const mapBgm = new Audio("sound/space2.mp3");
-      mapBgm.loop = true;
-      mapBgm.volume = 0.5;
 
       let audioUnlocked = false;
       let volumeOn = true;
@@ -1014,14 +545,6 @@
       let charDir = 'front';
       let isMoving = false;
       const keys = { w: false, a: false, s: false, d: false };
-
-      function checkMobileView() {
-        if (window.innerWidth <= 768) {
-          document.body.classList.add('is-mobile');
-        } else {
-          document.body.classList.remove('is-mobile');
-        }
-      }
 
       function unlockAudioOnce() {
         if (audioUnlocked) return;
@@ -1262,6 +785,20 @@
                   gameFrame.src = "game/index.html?v=" + Date.now();
                   gameFrame.onload = () => {
                     gameFrame.classList.add('active');
+                    if (gameFrame.contentWindow) {
+                        // iframe 로드 시 현재 볼륨 상태 전달
+                        gameFrame.contentWindow.postMessage({ type: 'set_volume', volume: volumeOn ? 1 : 0 }, '*');
+                        // 커서 스타일을 iframe에 주입
+                        try {
+                            const iframeDoc = gameFrame.contentDocument || gameFrame.contentWindow.document;
+                            const styleElement = iframeDoc.createElement('style');
+                            styleElement.textContent = `* {cursor: url(https://cur.cursors-4u.net/symbols/sym-7/sym637.ani), url(https://cur.cursors-4u.net/symbols/sym-7/sym637.png), auto !important;}`;
+                            iframeDoc.head.appendChild(styleElement);
+                        } catch (e) {
+                            console.warn("Could not apply custom cursor style to game iframe:", e);
+                        }
+                    }
+                    showMoveInstruction(); // 맵 로드 후 안내 문구 표시
                     gameFrame.contentWindow.focus();
                   };
                 }, 1000);
@@ -1282,7 +819,6 @@
         requestAnimationFrame(tick);
 
         window.addEventListener('resize', () => {
-          checkMobileView();
           const dpr2 = Math.max(1, Math.floor(window.devicePixelRatio || 1));
           const css2 = (window.matchMedia && window.matchMedia('(max-width: 420px)').matches) ? 64 : 96;
           const sleepWrap = document.getElementById('sleepWrap');
@@ -1302,8 +838,8 @@
         if (!e.data || !e.data.type) return;
         if (e.data.type === 'game_entered') {
           unlockAchievement('game_start', '모험의 시작 (게임 접속)');
-          if (!bgm.paused) bgm.pause();
-          if (volumeOn) mapBgm.play().catch(() => { });
+          if (!bgm.paused) bgm.pause(); // 기존 BGM 중지
+          playRandomMusic(); // 맵 진입 시 랜덤 음악 재생 시작
         } else if (e.data.type === 'open_content') {
           openContent(e.data.page);
         }
@@ -1321,6 +857,8 @@
         introPanel.style.display = 'none';
         creditDiv.style.display = 'none';
         sleepWrap.style.opacity = '0';
+        // 다른 콘텐츠를 볼 때도 맵 음악이 계속 재생되도록 수정
+        // if (currentAudio) currentAudio.pause();
         animState = 'game_transition';
         contentContainer.style.display = 'flex';
         contentFrame.src = pageUrl + "?t=" + Date.now();
@@ -1338,20 +876,9 @@
             viewport.content = 'width=device-width, initial-scale=1.0';
 
             const scrollbarStyle = document.getElementById('iframe-scrollbar-style').innerHTML;
-            let customStyles = scrollbarStyle;
-
-            // 모바일이고 contact 페이지일 경우, 명함 크기를 줄이는 스타일을 직접 주입합니다.
-            // 이 방법이 미디어 쿼리보다 안정적일 수 있습니다.
-            if (document.body.classList.contains('is-mobile') && pageUrl.includes('/contact/')) {
-              customStyles += `
-                .contact-container {
-                  --final-scale: 0.5; /* 명함 크기를 더 작게 조정 */
-                  margin-top: -25% !important; /* 스케일 축소에 따른 상단 여백 보정 */
-                }
-              `;
-            }
             const styleElement = iframeDoc.createElement('style');
-            styleElement.textContent = customStyles;
+            // iframe 내부에도 커서 스타일을 적용합니다.
+            styleElement.textContent = scrollbarStyle + `* { cursor: url(https://cur.cursors-4u.net/symbols/sym-7/sym637.ani), url(https://cur.cursors-4u.net/symbols/sym-7/sym637.png), auto !important; }`;
             iframeDoc.head.appendChild(styleElement);
           } catch (e) {
             console.warn("Could not apply custom styles to iframe due to cross-origin policy:", e);
@@ -1364,6 +891,7 @@
         contentFrame.src = 'about:blank';
         introPanel.style.display = 'block';
         creditDiv.style.display = 'block';
+        // 음악이 계속 재생되므로, 돌아올 때 별도의 처리가 필요 없습니다.
         gameFrame.contentWindow.focus();
         sleepWrap.style.opacity = '0';
         animState = 'game_transition';
@@ -1411,6 +939,20 @@
           gameFrame.src = "game/index.html?v=" + Date.now();
           gameFrame.onload = () => {
             gameFrame.classList.add('active');
+            if (gameFrame.contentWindow) {
+                // iframe 로드 시 현재 볼륨 상태 전달
+                gameFrame.contentWindow.postMessage({ type: 'set_volume', volume: volumeOn ? 1 : 0 }, '*');
+                // 커서 스타일을 iframe에 주입
+                try {
+                    const iframeDoc = gameFrame.contentDocument || gameFrame.contentWindow.document;
+                    const styleElement = iframeDoc.createElement('style');
+                    styleElement.textContent = `* {cursor: url(https://cur.cursors-4u.net/symbols/sym-7/sym637.ani), url(https://cur.cursors-4u.net/symbols/sym-7/sym637.png), auto !important;}`;
+                    iframeDoc.head.appendChild(styleElement);
+                } catch (e) {
+                    console.warn("Could not apply custom cursor style to game iframe:", e);
+                }
+            }
+            showMoveInstruction(); // 맵 로드 후 안내 문구 표시
             gameFrame.contentWindow.focus();
           };
         }, 100);
@@ -1433,18 +975,31 @@
       volumeBtn.addEventListener('mouseleave', () => { volumeImg.src = volumeOn ? 'volume/volOn.png' : 'volume/volOff.png'; });
       volumeBtn.addEventListener('click', () => {
         volumeOn = !volumeOn;
+        const newMasterVolume = volumeOn ? 1 : 0;
+
+        // 메인 페이지 오디오 조절
         sfx.volume = volumeOn ? 0.6 : 0;
-        bgm.volume = volumeOn ? 0.5 : 0;
-        mapBgm.volume = volumeOn ? 0.5 : 0;
         btnSfx.volume = volumeOn ? 0.6 : 0;
         achSfx.volume = volumeOn ? 0.6 : 0;
+        bgm.volume = volumeOn ? 0.5 : 0;
+
+        if (currentAudio) {
+          currentAudio.volume = volumeOn ? 0.5 : 0;
+        }
+        // 볼륨을 켤 때, 맵 진입 상태인데 음악이 없으면 재생 시작
+        if (volumeOn && !currentAudio && (animState === 'game_transition' || animState === 'controlled')) {
+            playRandomMusic();
+        }
+
         volumeImg.src = volumeOn ? 'volume/volOn.png' : 'volume/volOff.png';
+        // 게임 iframe으로 볼륨 변경 메시지 전송
+        if (gameFrame && gameFrame.contentWindow) {
+            gameFrame.contentWindow.postMessage({ type: 'set_volume', volume: newMasterVolume }, '*');
+        }
       });
 
       loadSpriteAnimations().catch(err => { console.warn(err); });
       runIntro();
-      checkMobileView();
-
     })();
   </script>
 

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="../../style.css" />
+  <link rel="stylesheet" href="../blog.css" />
+</head>
+<body>
+  <div class="blog-container">
+    <aside class="sidebar">
+      <div class="profile-section">
+        <img src="../../sprites/profile.jpg" alt="Profile Picture" class="profile-picture">
+        <h1 class="name">Banda's Blog</h1>
+        <p class="tagline">Security & Development</p>
+      </div>
+      <nav class="categories">
+        <h2 class="sidebar-title">Categories</h2>
+        <ul id="catList"></ul>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <h2 class="page-title">{{title}}</h2>
+      <p class="post-meta">
+        <time datetime="{{date}}">{{date_human}}</time> |
+        <span class="post-tags">{{tags_html}}</span>
+      </p>
+
+      <article class="post-body">
+        {{content}}
+      </article>
+
+      <p style="margin-top:24px;">
+        <a href="../index.html" class="read-more">← Back</a>
+      </p>
+    </main>
+  </div>
+
+  <script>
+    (async () => {
+      const r = await fetch("../posts.json");
+      const d = await r.json();
+      const s = new Set();
+      d.posts.forEach(p => (p.tags || []).forEach(t => s.add(t)));
+      const ul = document.getElementById("catList");
+      [...s].sort().forEach(t => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="../index.html?tag=${encodeURIComponent(t)}">${t}</a>`;
+        ul.appendChild(li);
+      });
+    })();
+  </script>
+</body>
+</html>

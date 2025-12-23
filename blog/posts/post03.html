@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VMProtect 가상화 난독화 해제 Part 02</title>
+
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../blog.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="blog-container single-post-container">
+        <main class="main-content">
+            <article class="post-full">
+                <header class="post-header">
+                    <a href="../index.html" class="back-to-list">&larr; Back to List</a>
+
+                    <h1 class="post-title-full">VMProtect 가상화 난독화 해제 Part 02</h1>
+
+                    <p class="post-meta">
+                        <time datetime="2025-08-15">August 15, 2025</time> | By Banda |
+                        <span class="post-tags">
+                            <a href="../index.html?tag=VMProtect">VMProtect</a>, <a href="../index.html?tag=UnpackMe">UnpackMe</a>, <a href="../index.html?tag=Devirtualize">Devirtualize</a>, <a href="../index.html?tag=Rev">Rev</a>
+                        </span>
+                    </p>
+                </header>
+
+                <section class="post-content">
+                    <h1>Introduction</h1>
+<p><img src="../assets/post03/main.png" alt=""></p>
+<p>안녕하세요 banda입니다. :)<br>
+이번에는 VMProtect Part 2로 돌아왔습니다. 사실 저번 이론 중심의 연구글의 흐름에 이어 part 2는 real-world로 확장해보는 글을 써보고 싶었고, 이번에는 정적 분석과 함께, 실제 VMProtect 3으로 virtualize된 함수들을 devirtualized binary / restored code로 해독해보는 실습을 진행해보려고 합니다.</p>
+<p>본 unpacking 글은 교육 및 연구 목적에서 작성되었으며, 윤리적인 기준을 지키며 생태계를 유지하는데 동참해 주기 바랍니다.</p>
+<h2>Devirtualization Rules</h2>
+<p><img src="../assets/post03/image1.png" alt=""></p>
+<p>챌린지에 들어가기 전에, 먼저 가상화 난독화의 기본 아이디어를 간단히 정리해 보겠습니다!  원래 프로그램은 x86, x64 같은 실제 CPU용 기계어로 실행됩니다. 그런데 VMProtect, Themida 같은 가상화 난독화 도구는 이 코드를 그대로 두지 않고</p>
+<ol>
+<li>원래 x86 코드를 “가상 바이트코드”로 변환하고</li>
+<li>이 바이트코드를 실행하는 가상 머신(VM) 코드를 바이너리 안에 집어넣은 다음</li>
+<li>실제 실행 시에는 이 VM이 바이트코드를 하나씩 해석하면서 동작하도록 만듭니다.<br><br></li>
+</ol>
+<p><strong>VM State Transition (VM 상태 전이)</strong></p>
+<p>가상화 해제를 이해하려면, “VM이 어떤 상태를 가지고 있고, 그 상태가 핸들러를 거치면서 어떻게 변하는지”에 집중하시는 게 중요합니다. 아래는 VM의 상태(State) 정의입니다.</p>
+<pre><code>VIP: Virtual Instruction Pointer
+VSP: Virtual Stack Pointer
+VStack 내용: 스택에 쌓여 있는 값들
+Scratch: 임시 저장소
+VFlags: 가상 플래그들(ZF, CF 같은 역할)
+</code></pre>
+<p>아무리 난독화가 심하다고 해도, 결국 중요한건 핸들러를 거치고 나서 ‘상태 묶음이 어떻게 바뀌었나’를 알아내는 것 뿐입니다. VM은 CPU가 아니라, <code>VIP</code>, <code>VStack</code>, <code>Scratch</code>, <code>VFlags</code>을 입력으로 받아서 다시 새로운 <code>VIP</code>, <code>VStack</code>, <code>Scratch</code>, <code>VFlags</code>을 내놓는 상태 전이 함수들의 집합으로 볼 수 있고, 핸들러를 분석할 때는 디스어셈블리 전체를 다 이해하려고 하기보다 ‘이 핸들러가 VM 상태를 이렇게 바꾼다’라는걸 요약할 수 있으면 그 핸들러 의미는 다 파악한 겁니다.</p>
+<h2>DevirtualizeMe Challenge - VMP32 v1</h2>
+<p><img src="../assets/post03/image2.png" alt=""></p>
+<p>이번에 실습해볼 Challenge는 Tuts4You의 <a href="https://forum.tuts4you.com/topic/39481-devirtualizeme-vmprotect-309/#comment-190252">DevirtualizeMe</a>입니다. 프로그램은 C++ 클래스 <code>UnpackMe</code>를 중심으로 동작하며, VMProtect 3.0.9의 Virtualization 보호가 적용되어 있습니다. 이 글의 목표는 첨부된 바이너리 안에서 VMProtect가 가상화한 함수들을 찾아내고, 그 위에서 실행되는 바이트코드의 의미를 해석하거나 본래 네이티브 코드 수준의 로직을 최대한 복원해 보는 것입니다. 분석 도구로는 IDA, Detect It Easy, Triton, VMPTrace 등을 사용할 예정입니다.<br></p>
+<h3>문제 정보</h3>
+<p><strong>Difficulty :</strong> 8
+<strong>Language :</strong> C++
+<strong>Platform :</strong> Windows x86
+<strong>OS Version :</strong> All
+<strong>Packer / Protector :</strong> VMProtect 3.0.9</p>
+<p><strong>Unpack</strong> 목표</p>
+<blockquote>
+<p>첨부된 바이너리(<code>.exe</code>)에서 가상화된 함수를 해석하고,
+가상화 해제 패치를 적용한 후 패치 프로그램을 실행했을 때 오류가 없이 돌아가야 합니다.</p>
+</blockquote>
+<p><em><strong>조건 :</strong></em>
+P를 눌렀을 때 VMP 영역에 있는 가상화 함수가 실행되며 메세지 박스가 나타난다.
+난독화 해제가 잘 되었다면 (패치 후에도 원본 로직을 유지한다면)
+패치 후 프로그램을 실행했을 때 P를 눌러도 crash가 뜨지 않아야 합니다.</p>
+<blockquote></blockquote>
+<p><img src="../assets/post03/image3.png" alt=""></p>
+<p>DiE의 엔트로피를 열어보면 전형적인 Virtualization 모드가 적용되었음을 알 수 있습니다. <code>.text</code> 영역이 난독화되어 있고, VMP의 핵심 VM bytecode가 들어갔다는 것을 <code>.vmp0</code>이 설명해주기 때문입니다. Entry Stub, Initialization stub가 패킹되었고, Run-time VM engine은 <code>.vmp0</code>에 존재할 것으로 생각합니다. <code>WinMain</code> → <code>UnpackMe</code> → <code>Run</code>으로 이어지는 흐름을 따라가면서, 실제로 VMEntry가 어디에 있는지부터 차근차근 확인해 보겠습니다.</p>
+<h3>Road to VMEntry</h3>
+<pre><code class="language-c">int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+  void (__stdcall ***v4)(HINSTANCE); // eax
+  void (__stdcall ***v5)(HINSTANCE); // ecx
+  void (__stdcall **v6)(HINSTANCE); // eax
+  int result; // eax
+
+  SetUnhandledExceptionFilter(TopLevelExceptionFilter);
+  v4 = (void (__stdcall ***)(HINSTANCE))operator new(0x48u);
+  v5 = v4;
+  if ( v4 )
+    *v4 = (void (__stdcall **)(HINSTANCE))&amp;UnpackMe::`vftable';  // vtable 설정
+  else
+    v5 = 0;
+  v6 = *v5;
+  UnpackMe* this = v5;
+  (*v6)(hInstance);   // vtable[0] 호출
+  j__free(UnpackMe* this);
+  return result;
+}
+
+</code></pre>
+<p>일반적인 가상화 난독화 VM은 보통 다음 세 가지 구성 요소를 가진다고 정리합니다.</p>
+<ul>
+<li><code>VM Entry</code> / <code>VM Exit</code>
+Entry : 네이티브 레지스터, 스택 상태를 VM 상태로 복사하는 구간
+Exit : 바이트코드 실행이 끝난 뒤, 다시 원래 레지스터, 스택으로 돌려주는 구간</li>
+<li><code>VM Dispatcher</code>
+가상 PC(<code>VIP</code>)가 가리키는 바이트코드에서 opcode를 읽고 -&gt; 어떤 핸들러로 갈지 결정
+-&gt; 핸들러를 호출하는 루프</li>
+<li><code>Handler Table</code>
+Opcode 값마다 연결된 핸들러 함수들의 테이블
+각 핸들러는 &quot;가상 <code>ADD</code>, 가상 <code>XOR</code>, 가상 분기&quot; 같은 하나의 VM 명령어 의미를 구현  <br><br></li>
+</ul>
+<p>DevirtualizeMe 같은 실전 문제에서 첫 단계는 “VMEntry가 어디인지 찾는 것”입니다. VMEntry를 찾아야 VM State의 구조를 파악할 수 있기 때문인데, VM State에 대한 내용은 후에 설명하겠습니다!</p>
+<p><code>WinMain()</code> 함수는 구조가 단순합니다. deevirtualization 관점에서 확인해보면, VMP는 보통 &quot;특정 함수&quot;만 가상화하고, 그 함수에 도달하는 경로는 C++ 코드 그대로 둡니다. 따라서 여기서 <code>vtable[0]</code>이 <code>UnpackMe::Run</code>이라는 사실만 확인하고 넘어가봅시다.</p>
+<p><img src="../assets/post03/image4.png" alt=""></p>
+<p>vtable을 따라가 보면 C++ 클래스 <code>UnpackMe</code>의 vtable이 <code>.rdata</code> 섹션에 위치하는 것을 확인할 수 있습니다. IDA에서 RTTI가 복원되면 <code>??_7UnpackMe@@6B@</code> 심볼이 붙고, <code>vtable</code>의 첫 엔트리는 자동으로 <code>UnpackMe::Run</code> 이름이 매핑됩니다. 이제 메인 루프를 여는 <code>UnpackMe::Run</code>으로 넘어가 보겠습니다.</p>
+<pre><code class="language-c">int __thiscall UnpackMe::Run(void *this, HINSTANCE hInst)
+{
+    *((DWORD*)this + 1) = hInst;
+
+    WNDCLASSEXW wc = {0};
+    wc.cbSize       = sizeof(wc);
+    wc.style        = 3;
+    wc.lpfnWndProc  = (WNDPROC)sub_40CC70;
+    wc.hInstance    = hInst;
+    wc.lpszClassName = L&quot;WndClass_DevirtualizeMe&quot;;
+    RegisterClassExW(&amp;wc);
+
+    ((void (__thiscall*)(void*))(*(DWORD*)this + 8))(this);
+    while ( GetMessageW(&amp;Msg, 0, 0, 0) )
+    {
+        TranslateMessage(&amp;Msg);
+        DispatchMessageW(&amp;Msg);   // 여기서 WndProc 체인으로 들어감
+    }
+}
+</code></pre>
+<p>devirtualization 관점에서 중요한 점은, <code>Run</code> 함수가 VM으로 들어가는 문지기 같은 역할을 하고 있습니다. 키보드를 통해 P키가 입력되면, 이 루프를 타면서 VMProtect Entry까지 도달하는 것이죠! 이 함수는 윈도우 클래스를 등록하고, <code>lpfnWndProc = sub_40CC70</code>로 전역 <code>WndProc</code>을 설정한 뒤, 메시지 루프에서 <code>DispatchMessageW</code>를 반복 호출합니다. 실제 키 입력(P 키 포함)은 모두 이 메시지 루프를 통해 <code>WndProc</code>으로 전달되고, 그 안에서 다시 <code>UnpackMe</code> 멤버 함수들로 라우팅됩니다.</p>
+<pre><code class="language-c">LRESULT __stdcall WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+    if ( dword_415F08 )
+        // vtable[1] = UnpackMe::WndProc(sub_40CB60)
+        return ((int (__thiscall*)(void*, HWND, UINT, WPARAM, LPARAM))
+                (*(DWORD*)UnpackMe* this + 4))(
+                    dword_415F08, hWnd, Msg, wParam, lParam);
+    else
+        return DefWindowProcW(hWnd, Msg, wParam, lParam);
+}
+</code></pre>
+<p>여기서 중요한 사실은, OS 입장에서는 <code>UnpackMe</code>라는 C++ 클래스의 존재나 객체 개수를 전혀 모릅니다. OS는 단지 <code>WndClass_DevirtualizeMe</code> 클래스에 대한 윈도우에 메시지가 오면 <code>sub_40CC70</code>을 호출한다는 정도만 알고 있고, <code>sub_40CC70</code>이 내부적으로 <code>UnpackMe::WndProc</code>으로 메시지를 넘기고 있습니다. 즉, devirtualization 관점에서는 결국 모든 키보드 메시지가 <code>UnpackMe::WndProc</code>로 들어온다는 사실을 기억합시다! 우리는 이 멤버 <code>WndProc()</code>에서 <code>WM_KEYDOWN</code>이 어떻게 처리되는지만 보면 됩니다.</p>
+<pre><code class="language-c">int __thiscall UnpackMe::WndProc(void *this,
+                                 HWND hWnd,
+                                 UINT Msg,
+                                 WPARAM wParam,
+                                 LPARAM lParam)
+{
+    if ( Msg &gt; 0x14 )
+    {
+        if ( Msg &lt;= 0x111 )
+        {
+            switch ( Msg )
+            {
+            case 0x100:  // WM_KEYDOWN
+                // vtable[6] = OnKeyDown
+                return ((int (__thiscall*)(void*, HWND, WPARAM, LPARAM))
+                        (*(DWORD*)this + 24))(
+                            this, hWnd, wParam, lParam);
+
+            case 0x111:  // WM_COMMAND
+                ...
+            }
+        }
+    }
+    ...
+}
+</code></pre>
+<p><code>WM_KEYDOWN</code>이 도착하면, 함수는 <code>vtable[6]</code>에 매핑된 <code>OnKeyDown</code>으로 제어를 넘깁니다. 여기까지는 여전히 메시지 라우팅 단계이며, 실제 VMProtect 가상화 코드는 아직 등장하지 않습니다. 하지만 슬퍼하지 마세요. 곧 나올 것 같은 예감이 듭니다.  <br></p>
+<pre><code class="language-c">int __thiscall UnpackMe::OnKeyDown(int this,
+                                   HWND hWnd,
+                                   WPARAM wParam,
+                                   LPARAM lParam)
+{
+    if ( wParam == 'P' )
+        proc();
+    return 0;
+}
+</code></pre>
+<p><code>OnKeyDown</code>은 키보드 입력을 실제로 검사하는 함수입니다. <code>wParam</code>이 문자 <code>'P'(0x50)</code>일 때만 <code>vir_Entry()</code>를 호출하고, 그 외의 키 입력은 모두 무시합니다.</p>
+<p><img src="../assets/post03/image5.png" alt=""></p>
+<p>실제로 프로그램을 실행한 뒤에 P 키를 누르면 주소 정보와 함께 메세지 박스가 뜨는데, 이때 실행되는 진입점이 <code>vir_Entry()</code>라고 보시면 됩니다.</p>
+<p><img src="../assets/post03/image6.png" alt=""></p>
+<p>여기부터 <code>call analysis failed</code>가 뜨면서 디컴파일에 실패하는데, 이 함수 내부에 비정상 제어 흐름, 간접 분기, 스택/레지스터를 망가뜨리는 시퀀스가 있어서 일반적인 C코드로 복구가 어렵다는 뜻입니다. 즉, devirtualizer을 만들거나 해독할 때의 출발점이 바로 이 <code>vir_Entry()</code>가 되겠죠?</p>
+<p>저희는 VMProtect가 보호한 함수까지 도달하는 전체 경로가</p>
+<pre><code class="language-c">WinMain → UnpackMe::Run → DispatchMessage → UnpackMe::WndProc → OnKeyDown → proc()
+</code></pre>
+<p>임을 정적 분석을 통해 확인할 수 있었습니다. 여기서 <code>proc()</code> 또는 그 안의 <code>vir_Entry</code> 지점이 VMEntry + VMProtect Virtualized 함수 몸통이라는 것까지 파악했습니다.</p>
+<p>VMEntry 주소를 찾았으니 디버거를 연결해 실행을 따라가 봅시다. 진입 직후인 <code>0x004869BB</code>부터는 VMProtect 특유의 가상화 엔진 코드가 본격적으로 나타나며, <code>push</code>, <code>call</code>, <code>xor</code>, <code>add</code> 등의 연산과 함께 <code>mov eax, [esi]</code> / <code>add esi, 4</code>와 같은 바이트코드 스트림 로딩 패턴이 반복적으로 확인되었습니다. 이런 흐름은 VMProtect가 내부적으로 가상 레지스터와 바이트코드 포인터(<code>ESI</code>)를 갱신하면서 핸들러를 순차적으로 해석하고 있다는 점을 명확히 보여줍니다.</p>
+<p><img src="../assets/post03/image7.png" alt=""></p>
+<p>전체 VM 엔진을 하나의 CFG로 통합적으로 분석하는 방식은 인간이 하기에는 사실상 불가능에 가깝습니다. VMProtect는 수천 개에 달하는 의미 없는 junk instruction과 control-flow flattening 기법을 적용하기 때문에, 본래 VM 디스패처와 opcode 핸들러 경로를 촘촘히 흐트러놓습니다!</p>
+<p><img src="../assets/post03/image8.png" alt=""></p>
+<p>디버거로 핸들러와 디스패처 안을 돌고돌고 돌아서 끝까지 <code>jmp</code> 해보면 무언가 나오지 않을까 싶었습니다. 기대와 함께 마주한 것은 opcode 의미를 구현하는 핸들러 하나를 제대로 잡은 줄 알았는데, 결국 아무 의미 없는 트램폴린 역할만 하는 핸들러였습니다. 이런 상황이 수없이 반복되었습니다.</p>
+<p><img src="../assets/post03/image9.png" alt=""></p>
+<p>저는 <code>VMExit</code>를 잡고 싶었는데, 아무리 찾아봐도 Handler → dispatcher → handler … 가 마치 천국의 계단처럼 반복되었습니다. 마치 디버거에서는 영원히 여기를 빠져나올 수 없을 것만 같았습니다. 특히 평소 CPU처럼 물리 레지스터를 쓰는게 아니라 실행 중 <code>VIP</code>, <code>VSP</code> 같은 가상 레지스터나 암호화된 Stack 영역에 값을 숨겨놨기 때문에.. <code>EAX</code>를 아무리 쳐다봐도 의미있는 데이터가 나오지 않았습니다.</p>
+<p><img src="../assets/post03/image10.png" alt=""></p>
+<p>… 여기에서 디버깅하기에는 이번 생이 더 짧은 것 같습니다. 다른 방법을 한번 찾아봅시다.</p>
+<h3>Patch</h3>
+<pre><code class="language-c">0040D153 FF10           call dword ptr [eax]
+0040D155 FF35 085F4100  push dword ptr [415F08]
+0040D15B E8 623FFFFF    call 4010C2
+0040D160 83C4 04        add esp, 4
+0040D163 5D             pop ebp
+0040D164 C2 1000        ret 10
+</code></pre>
+<p><img src="../assets/post03/image11.png" alt=""></p>
+<p>Trace로 프로그램 흐름을 추적하기 위해서 먼저 원본 바이너리에 약간의 패치를 적용했습니다. 고질적인 문제인지 의도된 사항인지 모르겠으나 Intel Pin Tool로 실행할 경우 문제 바이너리가 백그라운드 상태로만 돌아갔기 때문에, 프로그램 실행 직후 필자가 ‘P’를 누르지 않아도 즉시 VM Entry로 진입하도록 패치하였습니다.</p>
+<h3>Pin을 이용한 Trace 수집</h3>
+<p>Intel Pin은 프로그램 실행 중에 코드를 삽입하여 동작을 분석하는 도구입니다. Pin은 실제 실행 흐름이 어떠한 난독화 기법을 적용해도, 프로그램이 실행하는 <strong>단 하나의 명령어(Instruction)도 놓치지 않고</strong> 모두 가로채서 기록할 수 있습니다.</p>
+<p>Trace를 수집하기 위해서 정적 분석으로 아래 주소들을 확인했습니다.</p>
+<ul>
+<li><strong>gDispEntry (<code>0x004869BB</code>):</strong> VM Entry(진입점)</li>
+</ul>
+<p><img src="../assets/post03/image12.png" alt=""></p>
+<ul>
+<li><strong>gHandler82 (<code>0x004181BB</code>):</strong> 분석을 통해 찾은 특정 핸들러(ID 82)의 진입점</li>
+</ul>
+<pre><code class="language-c">24566 vmtrace.out
+i:0x004869bb:5:68EACF8694
+r:0x004869c0:0x00401dcd:0x00000000:0x97010000:0x00000000:0x0000000a:0x004011fc:0x0019ff28:0x0019ff20:0x00000202
+i:0x004869c0:5:E883A9FFFF
+r:0x00481348:0x00401dcd:0x00000000:0x97010000:0x00000000:0x0000000a:0x004011fc:0x0019ff28:0x0019ff1c:0x00000202
+i:0x00481348:1:51
+r:0x00481349:0x00401dcd:0x00000000:0x97010000:0x00000000:0x0000000a:0x004011fc:0x0019ff28:0x0019ff18:0x00000202
+i:0x00481349:5:E9CA50FBFF
+r:0x00436418:0x00401dcd:0x00000000:0x97010000:0x00000000:0x0000000a:0x004011fc:0x0019ff28:0x0019ff18:0x00000202
+i:0x00436418:1:55
+</code></pre>
+<p>먼저 VMProtect VM이 한 사이클을 도는 구간을 Trace에서 추출했는데, 이 과정만으로도 약 <code>n0,000</code>줄에 달하는 기록이 생성되었습니다! 이 정도 규모라면 핸들러 단위로 분리하고 반복되는 패턴을 자동으로 식별하는 과정이 필수적이겠네요.</p>
+<p><code>i</code>: 줄은 실행된 명령어,
+<code>r</code>: 줄은 해당 시점의 레지스터 및 스택 상태를 나타내며,
+JonathanSalwan의 <a href="https://github.com/JonathanSalwan/VMProtect-devirtualization">VMProtect-devirtualization</a> 프로젝트가 많은 도움이 되었습니다!  <br><br></p>
+<p><strong><code>uniq -c</code>로 본 VM 메인 루프 · 핸들러 후보 식별</strong></p>
+<pre><code class="language-c">    108 0x0047f287
+    108 0x0044a8ae
+    108 0x0044a8ac
+    108 0x0044a8ab
+    108 0x0044a8a7
+    107 0x004181bb 
+     64 0x00464679
+     10 0x0049acd6
+     10 0x0049acd4
+     10 0x0049acd2
+</code></pre>
+<p>수집된 Trace에서 동일 주소의 실행 빈도를 <code>uniq -c</code> 방식으로 계산해 가장 자주 호출된 위치를 나열하였습니다. 이를 토대로 정적 분석을 통해 역할을 분류해보면 다음과 같은 점을 확인했습니다.</p>
+<ul>
+<li>가장 높은 빈도 108회: VM Dispatcher
+<ul>
+<li><strong>VM 디스패처 (Dispatcher)</strong>
+<code>0x0047f287</code>, <code>0x0044a8a7</code> 등 여러 dispatch 조각이 동일한 108번 빈도로 반복되는 것이 확인되었습니다. Dispatcher이 Fetch → Decode → Dispatch → Execute CPU 사이클을 소프트웨어로 구현한 부분이며, dispatcher이 실제 의미 있는 연산을 수행하지 않으므로 제외하고 넘어갑시다.</li>
+</ul>
+</li>
+<li>두 번째로 높은 빈도 107회: 핸들러 ID 82
+<ul>
+<li><strong>가장 많이 쓰인 핸들러 (<code>LCONST</code>)</strong>
+<code>0x004181BB</code>는 VMProtect가 자주 사용하는 스택 기반의 가상 머신 특성을 생각해볼 때, 상수 로드(<code>LCONST</code>) 계열 핸들러라고 추측해볼 수 있었습니다. 스택 머신에서 모든 연산은 스택 위에서 이뤄지기 때문에, 로드/복사/이동 관련 연산이 많이 반복되겠죠? 가장 빈도가 높은 핸들러를 우선 분석하는 접근이 효율적입니다.</li>
+</ul>
+</li>
+</ul>
+<h3>PIN Trace 다시 하기</h3>
+<p>기존 pin에는 이번에는 제공된 Intel Pin Tool 템플릿을 기반으로, ID 82 핸들러만 골라서 추출할 수 있도록 최적화된 Pintool을 개발했습니다. 이 도구를 이용해 VMProtect VM에서 ID 82가 실제로 어떤 연산을 수행하는지 역추적해봅시다!</p>
+<p><img src="../assets/post03/image13.png" alt=""></p>
+<p>VMProtect 가상머신 한 명령어가 어떤 일을 하는지 동적으로 캡처하기 위해 Pin을 개발했습니다. 가상화 해제 관점에서 고정된 두 IP 지점을 기준으로 한 VM 명령어를 잡고, 바이트코드 로딩 시점에서 <code>ESI</code>가 가리키는 4바이트를 캡처하도록 하였으며, 핸들러 내부에서 연산이 끝나고 결과를 스택으로 푸시하는 CONTEXT에서 <code>EAX</code>/<code>EDI</code> 값을 읽도록 하였습니다.</p>
+<p><img src="../assets/post03/image14.png" alt=""></p>
+<p>빌드한 <code>MyPinTool</code>을 이용해 3가지 정보를 수집했습니다.  <br><br></p>
+<p><strong>1. vmtrace.out: 디스패처 진입부터 VM 종료까지의 전체 x86 명령어</strong></p>
+<pre><code class="language-c">#main exe: [0x00400000, 0x00581fff)
+004869bb 68 EA CF 86 94
+004869c0 E8 83 A9 FF FF
+00481348 51
+00481349 E9 CA 50 FB FF
+00436418 55
+00436419 50
+0043641a 66 F7 D5
+0043641d E9 15 92 FE FF
+0041f637 57
+0041f638 0F BF FF
+...
+</code></pre>
+<p>이 파일에는 <code>0x004869BB</code>에서 VM 디스패처 진입 후, VM이 끝날 때까지 실행된 모든 x86 명령어가 순서대로 기록되어 있습니다. 명령어 주소, 기계어 바이트만 담기게 하고, trace를 따면서 txt 파일이 함께 추출되도록 했습니다.</p>
+<p><strong>2. bytecode_values.txt: ID 82 핸들러 진입 시 <code>[ESI]</code> 값 (즉, 가상 명령어 인자)</strong></p>
+<pre><code class="language-c">1,0x0047fa5f,0x1ecbf564,0x000271c9,0x004892af
+2,0x0045cb33,0x1ec6b25f,0xfffcff9f,0x00432085
+3,0x0046ef95,0x1ec5393d,0xfffdab5b,0x0043cc41
+# Total ID82 calls: 3
+</code></pre>
+<p>bytecode values가 추출된 파일을 열어보면, ID 82가 어떤 상수/인자를 입력으로 받았는지 로그로 남겨줍니다. 여러 호출에 대해 인자 패턴을 비교하면, 이 핸들러가 상수를 스택에 푸시하는지, 인자에 특정 연산을 씌우는지, 인덱스로 사용되는지 등을 추론할 수 있습니다. 후에 Triton에서 symbolic value를 넣고 돌릴 때 구체 값으로 사용하려고 합니다.</p>
+<p><strong>3. id82_registers.txt: 핸들러 진입 시점의 레지스터 상태 스냅샷</strong></p>
+<pre><code class="language-c">=== VM Entry (0x004869bb) ===
+INIT_ESI=0x0000000a
+INIT_EBP=0x0019ff74
+INIT_ESP=0x0019ff04
+===========================
+
+ID82_001: IP=0x004323ff EAX=0x000271c9 EBX=0x00458b96 ECX=0x00000020 EDX=0x00000000 ESI=0x0047fa63 EDI=0x004892af EBP=0x0019fed8 ESP=0x0019fe18 BYTECODE=0x1ecbf564
+ID82_002: IP=0x004323ff EAX=0xfffcff9f EBX=0xffb934ac ECX=0x00000020 EDX=0x0000422a ESI=0x0045cb37 EDI=0x00432085 EBP=0x0019fcd0 ESP=0x0019fc10 BYTECODE=0x1ec6b25f
+ID82_003: IP=0x004323ff EAX=0xfffdab5b EBX=0xffbb44ce ECX=0xdcedb11a EDX=0x00000000 ESI=0x0046ef99 EDI=0x0043cc41 EBP=0x0019fcc0 ESP=0x0019fc00 BYTECODE=0x1ec5393d
+
+# Total ID82 calls: 3
+</code></pre>
+<p>그리고 레지스터 정보가 추출된 파일입니다. VM Entry 시점의 초기 상태와 각 ID 82 호출 직전의 실제 레지스터 값과 함께 BYTECODE 값까지 한줄에 들어가도록 구성했습니다. 즉, 저는 ID 82 핸들러의 코드 + 입력 + 초기 상태 세 가지 목적을 모두 추출하여, 하나의 VM opcode 구현을 완전히 복원하려는 목적에 맞게 pin을 설계했습니다.</p>
+<h3>VM-only trace에서 ID 82 실행 구간 분리</h3>
+<p>앞서 수집한 로그를 바탕으로, 이제 개별 VM 핸들러 의미를 복원해보려고 합니다.</p>
+<pre><code class="language-c">total ins: 58414
+ID82 entries: 107
+ID82 segments (with glue): 106
+written id82_segments.json
+</code></pre>
+<p>이를 위해 앞서 Pin으로 추출한 <code>vmtrace.out</code>에서 ID 82가 실행된 구간에서, ID 82가 실행된 인스턴스별로 segment가 저장되도록 잘라내는 스크립트를 개발했습니다. 앞서 확인했던 ID 82의 Entries는 107번이 나왔으며, segments가 106까지 <code>json</code> 파일 안에 추출되었습니다!</p>
+<pre><code class="language-c">  {
+    &quot;idx&quot;: 1,
+    &quot;start_ip&quot;: 4293051,
+    &quot;end_ip&quot;: 4715143,
+    &quot;ins&quot;: [
+      &quot;004181bb FF E7&quot;,
+      &quot;00468429 8B C5&quot;,
+      &quot;0046842b 66 85 F2&quot;,
+      &quot;0046842e 81 ED 04 00 00 00&quot;,
+      &quot;00468434 66 3B FE&quot;,
+      &quot;00468437 89 44 25 00&quot;,
+      &quot;0046843b 9F&quot;,
+      &quot;0046843c 13 C6&quot;,
+      &quot;0046843e E9 C1 EC FE FF&quot;,
+      &quot;00457104 8B 06&quot;,
+      &quot;00457106 3B E6&quot;,
+      &quot;00457108 81 C6 04 00 00 00&quot;,
+      &quot;0045710e 33 C3&quot;,
+      &quot;00457110 E9 BB 7D FE FF&quot;,
+      &quot;0043eed0 D1 C8&quot;,
+      &quot;0043eed2 35 B9 3D CB 4A&quot;,
+      &quot;0043eed7 F5&quot;,
+      &quot;0043eed8 F9&quot;,
+      &quot;0043eed9 66 85 C4&quot;,
+      &quot;0043eedc 2D 40 01 8C 45&quot;,
+      &quot;0043eee1 E9 FC 23 FF FF&quot;,
+      &quot;004312e2 D1 C0&quot;,
+      &quot;004312e4 33 D8&quot;,
+      &quot;004312e6 03 F8&quot;,
+      &quot;004312e8 E9 B3 DE 02 00&quot;,
+      &quot;0045f1a0 E9 02 B7 FE FF&quot;,
+      &quot;0044a8a7 8D 44 24 60&quot;,
+      &quot;0044a8ab F5&quot;,
+      &quot;0044a8ac 3B E8&quot;,
+      &quot;0044a8ae E9 D4 49 03 00&quot;,
+      &quot;0047f287 0F 87 2E 8F F9 FF&quot;
+    ]
+  }
+</code></pre>
+<p>추출된 segment는 ID 82 진입 → 여러 glue/ 공통 코드 → 디스패처 복귀까지 한 번의 실행 흐름을 그대로 담고 있었습니다. 다만 아직 VMProtect가 넣은 노이즈가 많이 섞여있기 때문에, 아직 이것만으로는 핸들러 순수 본체를 분리한 상태는 아닙니다. 계속 진행해봅시다.</p>
+<h3>ID 82 패턴 클러스터링</h3>
+<pre><code class="language-c">total segments: 106
+unique patterns: 70
+==== pattern 1 size 5
+indices: [20, 40, 60, 78, 94]
+==== pattern 2 size 5
+indices: [21, 43, 62, 82, 99]
+==== pattern 3 size 4
+indices: [19, 39, 59, 93]
+==== pattern 4 size 4
+indices: [22, 65, 84, 103]
+...
+</code></pre>
+<p>다음 단계로는 앞서 생성했던 <code>json</code> 파일을 로드하여 각 segment의 바이트 시퀀스를 비교하고, 완전히 동일한 패턴끼리 묶는 스크립트를 제작했습니다. 하나의 ID에서 각각의 Segment 들을 서로 비교(클러스터링)하면, 각 Segment마다 서로 완전히 일치하는 패턴이 생깁니다. 예를들면 패턴 1은 Segment 20, 40, 60, 78, 94가 모두 같은 패턴을 가지고 있고, 이를 같은 리스트에 묶어둔 것이라고 할 수 있습니다! 이 과정을 진행하는 이유는, 이 패턴 중 하나를 골라 대표 ID 82 핸들러 코드로 삼아 의미를 분석하기 위한 기준 샘플로 활용하기 위해서 입니다.</p>
+<h3>Triton으로 ID 82 핸들러 시뮬레이션</h3>
+<p>이전에 ID 82 패턴 클러스터링 한 결과를 바탕으로 pattern 1에서 index 20을 대표로 골라서, 그 segment의 바이트코드를 하나의 연속된 x86 코드로 덤프해보았습니다.</p>
+<pre><code class="language-c">written id82_handler.asm from idx 20
+004181bb FF E7
+0044fa7a 0F B6 06
+0044fa7d 81 C6 01 00 00 00
+0044fa83 32 C3
+0044fa85 66 F7 C2 DE 7B
+0044fa8a F9
+0044fa8b 2C 3A
+0044fa8d D0 C8
+0044fa8f F6 D8
+0044fa91 E9 48 9B 02 00
+</code></pre>
+<p>이 결과를 정적분석한 IDA 디스어셈블리와 비교하면 구조가 다음과 같이 정리가 됩니다.</p>
+<p><img src="../assets/post03/image15.png" alt=""></p>
+<p><code>0x004181BB: FF E7 → 0x004181BB jmp edi</code>는, 디스패처에서 EDI에 핸들러 진입 주소를 넣은 뒤, <code>jmp</code>하는 글루 진입점입니다.</p>
+<p><img src="../assets/post03/image16.png" alt=""></p>
+<p>그리고 <code>0x0044FA7A</code> 이후부터가 중요합니다. 바로 ID 82의 본체 전반부를 알아낸 것인데요.
+위 흐름은 <code>movzx eax, byte ptr [esi]</code> / <code>add esi, 1</code>로 바이트코드의 첫 바이트(opcode)를 읽고, 이후 <code>AL</code>을 <code>XOR</code>, <code>SUB</code>, <code>ROR</code>, <code>NEG</code> 등으로 섞은 뒤 다음 위치로 점프하는 흐름을 보여주고 있습니다. <code>esi</code>에서 4바이트를 읽어 암호를 풀고, <code>EBX</code>를 새 상수 값으로 갱신한 뒤, 다시 디스패처 루프(<code>0x4323ff</code>)로 복귀하는 것까지 확인됩니다. 즉, Pin trace와 IDA 디스어셈블리를 결합해 보면, <code>trace.out</code> 기준으로 ID 82 핸들러의 완전한 native 코드를 복구한 상태까지 온 거에요. 거의 다 왔습니다!</p>
+<p>하지만 여기서 끝이 아닙니다. 이제 이 코드의 수학적 변환을 알아내기 위해, 이 코드를 Triton에 로드하고 앞서 수집한 레지스터와 바이트코드 초기 값을 넣어서 Symbolic Execution을 수행해야 그 본질을 알 수 있는 것이죠.</p>
+<h3>상태 변화 로그 추적</h3>
+<p>Triton을 사용해 ID 82 실행 전·후의 레지스터를 비교한 결과, 다음과 같은 중요한 패턴을 발견했습니다.</p>
+<pre><code class="language-c">0x4442f2: shr dh, cl
+0x43641a: not bp
+
+--- [ Logic Start (0x41F637) ] ---
+0x41f638: movsx edi, di
+0x41f63c: lahf
+0x41f63d: bts ebp, esi
+0x41f641: cmp bh, 0xb4
+0x41f645: shr bp, 0xa6
+0x41f649: sub ebx, edx
+0x41f64b: test esi, ebp
+0x41f64e: xchg ah, bh
+0x41f650: sub ax, bx
+0x41f653: movsx ebx, bp
+0x41f656: mov eax, 0
+0x41f65b: not si
+0x41f65e: xadd ebp, esi
+0x41f662: mov esi, dword ptr [esp + 0x28]
+0x41f666: add esi, 0x55106798
+0x41f66c: neg esi
+0x41f66e: rol edi, 0x70
+0x41f671: add esi, 0x69733a52
+0x41f677: btr ebp, 0xc0
+0x41f67b: rol esi, 1
+0x41f67d: sbb ebx, 0x37516d2d
+0x41f683: not esi
+0x41f685: clc
+0x41f686: cmp eax, esp
+0x41f688: xor ebp, esp
+0x41f68a: add esi, eax
+0x41f68c: setns al
+0x41f68f: mov ebp, esp
+0x41f691: sub bx, sp
+0x41f694: rol ax, cl
+0x41f697: dec di
+0x41f69a: sub esp, 0xc0
+0x41f6a0: jmp 0x453e79
+0x453e79: mov ebx, esi
+0x453e7b: bt eax, esp
+0x453e7e: btc ax, 0x47
+0x453e83: btr eax, edx
+0x453e86: mov eax, 0
+0x453e8b: jmp 0x4620dd
+0x4620dd: sub ebx, eax
+0x4620df: shld eax, eax, 0xe3
+0x4620e3: sub eax, edi
+0x4620e5: stc
+0x4620e6: lea edi, [0x4620e6]
+0x4620ec: mov eax, dword ptr [esi]
+0x4620ee: cmc
+0x4620ef: test cl, 0x19
+0x4620f2: lea esi, [esi + 4]
+0x4620f8: cmc
+0x4620f9: test ebx, 0x76f532e4
+0x4620ff: xor eax, ebx
+0x462101: ror eax, 1
+0x462103: stc
+0x462104: xor eax, 0x4acb3db9
+0x462109: sub eax, 0x458c0140
+0x46210e: rol eax, 1
+0x462110: xor ebx, eax
+0x462112: cmc
+0x462113: cmp bx, sp
+0x462116: clc
+0x462117: add edi, eax
+0x462119: jmp 0x4323ff
+--- [ Logic End (0x432400) ] ---
+</code></pre>
+<p>위 코드는 Triton 기반 분석 스크립트가 찍은 <code>asm</code> 코드로, <code>vmtrace.out</code>와 바이너리 바이트를 바탕으로 ID 82 핸들러 실행 경로를 재현해서 디스어셈블한 결과를 저장한 것입니다! Triton을 사용해서 ID 82 실행 전 후 레지스터를 비교한 결과, 다음과 같은 중요한 패턴을 발견했습니다.</p>
+<pre><code class="language-c">=== case 1 bc = 0x1ecbf564
+init EAX = 0x271c9 EBX = 0x458b96 ESI = 0x47fa63 EDI = 0x4892af
+final EAX = 0x19fe78
+final EBX = 0xafe65f2
+final ECX = 0x20
+final EDX = 0x0
+final ESI = 0x47fa68
+final EDI = 0xb0480ee
+final EBP = 0x19fed4
+final ESP = 0x19fe18
+diff EAX = 0x1b8fb1 EBX diff = 0xabbee64
+
+=== case 2 bc = 0x1ec6b25f
+init EAX = 0xfffcff9f EBX = 0xffb934ac ESI = 0x45cb37 EDI = 0x432085
+final EAX = 0x19fc70
+final EBX = 0x20ae78f3
+final ECX = 0x20
+final EDX = 0x422a
+final ESI = 0x45cb3c
+final EDI = 0xdf5a6d09
+final EBP = 0x19fccc
+final ESP = 0x19fc10
+diff EAX = 0xffe503ef EBX diff = 0xdf174c5f
+
+=== case 3 bc = 0x1ec5393d
+init EAX = 0xfffdab5b EBX = 0xffbb44ce ESI = 0x46ef99 EDI = 0x43cc41
+final EAX = 0x19fc60
+final EBX = 0x20ae78f3
+final ECX = 0xdcedb11a
+final EDX = 0x0
+final ESI = 0x46ef9e
+final EDI = 0xdf590927
+final EBP = 0x19fcbc
+final ESP = 0x19fc00
+diff EAX = 0xffe4573b EBX diff = 0xdf153c3d
+</code></pre>
+<p><strong>1. 모든 케이스에서 <code>ESI</code> 레지스터 값이 정확히 5만큼 증가했습니다.</strong></p>
+<p><code>Case 1</code>: <code>0x47fa63</code> → <code>0x47fa68</code> (+5)</p>
+<p><code>Case 2</code>: <code>0x45cb37</code> → <code>0x45cb3c</code> (+5)
+<code>Case 3</code>: <code>ESI = 0x46ef99</code> → <code>0x46ef9e</code> (+5)  <br>
+ID 82가 바이트코드 스트림에서 총 5바이트를 소비했다는 뜻이고, 앞단 코드에서 <code>movzx eax, byte ptr [esi]</code> / <code>add esi, 1</code>로 1바이트(opcode)를 소비하고, 이후 <code>mov eax, [esi]</code> / <code>lea esi, [esi+4]</code>로 4바이트를 추가로 읽기 때문에 결과적으로 <code>1 + 4 = 5</code> 바이트를 사용하는 구조가 되었다는 것으로 예상해볼 수 있었습니다. <br><br></p>
+<p><strong>2. <code>EBX</code> 레지스터의 값이 이전 상태와 전혀 다른 새로운 값으로 변경되었습니다.</strong></p>
+<p><code>EBX</code>의 최종 값이 초기 <code>EBX</code>와 전혀 다른 새로운 값으로 바뀌었으며, 로그의 <code>bc</code>(bytecode) 값인 <code>0x1ecbf564</code> 등이 핸들러 내부의 복호화 로직(<code>NOR</code>, <code>ADD</code>, <code>ROL</code> 등)을 거쳐 최종적으로 <code>final EBX</code> 값인 <code>0xafe65f2</code> 등으로 변환된 것으로 예상해볼 수 있습니다. 특히 case 2와 case 3의 최종 <code>EBX</code> 둘 다 <code>0x20ae78f3</code>으로 동일한데, 서로 다른 암호화된 BYTECODE(<code>0x1ec6b25f</code>, <code>0x1ec5393d</code>)가 같은 결과로 수렴하는 것으로 보아 어떤 복호화 로직을 수행하고 있음을 추정해봅시다!  <br><br></p>
+<p>그러면 앞서 확인했던 특징을 종합해봅시다.
+ID 82는 바이트코드 스트림에서 아래를 읽어들이고</p>
+<ul>
+<li>1 바이트 opcode</li>
+<li>4바이트 암호화된 즉시 값</li>
+</ul>
+<p>이 4 바이트 값을 <code>XOR</code>, <code>SUB</code>, <code>ROL</code> 같은 복잡한 연산을 통해 디코딩한 뒤,</p>
+<ul>
+<li>그 결과를 <code>EBX</code>에 반영해서, 가상 스택 상에 상수를 하나 적재(<code>LCONST</code>/<code>PUSH</code>)하는 핸들러</li>
+</ul>
+<p>로 동작할 것임으로 예상해볼 수 있겠죠?</p>
+<h3>그럼 진짜 연산 로직은?</h3>
+<pre><code class="language-c">TARGET_HANDLERS = [
+    0x44A8A7, 0x47F287, 0x4181BB, 0x40356C, 0x404F43, 
+    0x405B60, 0x405CB6, 0x405CE2, 0x404F5E, 0x404419, 
+    0x404E83, 0x4046BF, 0x4046DC, 0x4892AF, 0x41A261, 
+    0x45F79C, 0x496B0F, 0x474C45, 0x437E65, 0x493FB7,
+    0x43CB8A, 0x46688C, 0x45B9AD, 0x432085, 0x484226
+]
+</code></pre>
+<p>앞서 중요한 정보를 발견했습니다. ID 82만으로는 실제 프로그램 로직 전체를 복원할 수 없으므로, 저는 ID 82에서 사용했던 분석 파이프라인을 다른 핸들러들로 확장하기로 했습니다. 함수 수가 너무 많기 때문에, 우선 정적 분석과 trace 기반 핫스팟 분석을 통해서 실제로 자주 호출되거나 의미 있어 보이는 핸들러 후보만 선별했습니다.</p>
+<h3>모든 핸들러의 정체가 드러나다.</h3>
+<pre><code class="language-c">&gt;&gt;&gt; Handler 0x432085 (Length: 39)
+----------------------------------------
+  [M] 0x432085: movzx eax, byte ptr [esi]
+  [!] 0x432088: rol cx, 0xc
+  [!] 0x43208c: add esi, 1
+  [!] 0x432096: xor al, bl
+  [!] 0x43209a: ror cx, 0xf6
+  [!] 0x43209e: sub al, 0x3a
+  [!] 0x4320a0: ror al, 1
+  [!] 0x4320a2: neg al
+  [!] 0x4320aa: not al
+  [!] 0x4320b1: and cx, si
+  [!] 0x4320b4: xor bl, al
+  [!] 0x4320b6: mov ecx, dword ptr [ebp]
+  [!] 0x4320bf: add ebp, 4
+  [!] 0x4320c5: mov dword ptr [esp + eax], ecx
+  [!] 0x4320c8: ror eax, 0xd2
+  [!] 0x4320cb: mov eax, dword ptr [esi]
+  [!] 0x4320cd: add esi, 4
+  [!] 0x4320de: xor eax, ebx
+  [!] 0x4320e1: ror eax, 1
+  [!] 0x4320e3: xor eax, 0x4acb3db9
+  [!] 0x4320ee: sub eax, 0x458c0140
+  [!] 0x4320f3: rol eax, 1
+  [!] 0x4320f5: xor ebx, eax
+  [!] 0x4320fd: add edi, eax
+----------------------------------------
+...
+</code></pre>
+<p>각각의 주소는 하나의 VM 핸들러 진입점이고, 이들에 대해 ID 82 때와 동일한 세그먼트 분리 → 패턴 클러스터링 → Triton으로 의미를 추출하는 매커니즘을 반복 적용했습니다. 예를들어 위 데이터는 추출된 핸들러 중 <code>0x00432085</code>에 대한 실제 상태 변화를 추적한 것입니다. 다음과 같은 사실을 알 수 있습니다!</p>
+<ul>
+<li><code>ESI</code>를 증가시키며 바이트코드를 소비</li>
+<li><code>EBX</code>, <code>EDI</code>, 스택(<code>[esp + eax]</code>) 등에 대해 일정한 패턴으로 연산 수행</li>
+<li>최종적으로 스택 기반 가상 레지스터를 읽고 쓰거나, 상수/메모리 값 조합을 이용해 새로운 값을 만들어 넣는 역할 수행</li>
+</ul>
+<p>이런 식으로 각 핸들러마다 이 opcode가 무엇을 하는지 사람이 이해할 수 있는 수준의 연산 단위로 요약해 나간 결과, 전체 파이프라인을 정리해나갈 수 있었습니다. 각 핸들러를 실제 VM 명령 집합의 한 명령어처럼 바라볼 수 있게 된 것이죠.</p>
+<p><img src="../assets/post03/image17.png" alt=""></p>
+<p>위 과정이 완료되면, 이제 opcode 값을 실제 핸들러 주소와 연결해야 합니다. Pin에서 VM 디스패처의 FETCH 지점을 후킹하였고, opcode 값에 대한 정보를 확인할 수 있었습니다.</p>
+<p><img src="../assets/post03/image18.png" alt=""></p>
+<p>이 로그와 <code>vmtrace.out</code>을 함께 파싱해, 각 opcode가 실제로 어떤 핸들러 진입 주소로 연결되는지 역분석하였습니다. (예를들어 ID 82에 대응하는 opcode는 <code>0x02</code>였습니다.)</p>
+<h3>Devirtualizer(가상화 해제기) 개발</h3>
+<p>여기까지 오면 VM 바이트코드와 실제 핸들러 주소가 일대일 연결된 상태가 되었습니다! 마지막 단계에서는 최종적으로 가상화된 함수 전체를 네이티브 x86으로 재구성하는 전용 devirtualizer를 만들어, 깔끔하게 패치까지 해보자는 생각을 구상해보게 되었습니다.</p>
+<ol>
+<li>Opcode(연산 코드: <code>0x02</code>, <code>0x40</code>, <code>0x88</code>등..)와 해당 핸들러 주소, 의미를 매핑한 파일을 읽어
+opcode → [핸들러 주소, 의미, 의사 코드] 매핑 테이블을 구성합니다.</li>
+<li>VM 바이트코드 스트림을 처음부터 끝까지 순차적으로 읽습니다.</li>
+<li>각 opcode에 대해서, 미리 정의해 놓은 네이티브한 x86 코드 조각을 예를들면
+<code>LCONST</code> → <code>MOV EBX, imm32</code>, <code>ADD</code> → <code>ADD [ESP+4], EAX</code> 이런 식으로 생성해둡니다.</li>
+<li>이렇게 생성된 조각들을 한 영역에 이어 붙여서, 새로운 네이티브 함수 본문을 만듭니다.</li>
+<li>마지막으로는 원본 바이너리의 <code>vir_Entry</code> 진입점에서 이 네이티브 함수로 동작하도록 패치해줍니다.</li>
+</ol>
+<p><img src="../assets/post03/image19.png" alt=""></p>
+<p>저의 가상화 해제기 코드를 일부 소개해보겠습니다. 위 루프에서는 각 항목을 순회하면서, <code>real_vip - VMP_BASE_ADDR</code>로 <code>.vmp0</code> 섹션 덤프 내 오프셋을 계산하고, opcode 1바이트를 건너뛰고 해당 opcode에 대응하는 핸들러 이름을 <code>VM_HANDLERS</code>에서 조회하도록 구성했습니다.</p>
+<p><img src="../assets/post03/image20.png" alt=""></p>
+<pre><code class="language-c">val = (encrypted + 0x55106798) &amp; 0xFFFFFFFF
+val = (0 - val) &amp; 0xFFFFFFFF
+val = (val + 0x69733a52) &amp; 0xFFFFFFFF
+val = ((val &lt;&lt; 1) | (val &gt;&gt; 31)) &amp; 0xFFFFFFFF
+decrypted = ~val &amp; 0xFFFFFFFF
+</code></pre>
+<p>주석 부분에는 Triton으로 해당 핸들러 전체를 심볼릭 실행해 얻은 연산 시퀀스를, 위 예시처럼 32비트 모듈러 산술 형태로 파이썬 코드로 재구현해서 적어주면 됩니다. 예를 들어 암호화된 32비트 상수를 입력으로 받아 VMP 핸들러에서 관찰된 것과 동일한 순서로 상수 덧셈 → <code>0 - val</code> → 추가 상수 덧셈 → 1비트 로테이션 → <code>NOT</code> 연산을 수행해 최종 <code>decrypted</code> 값을 얻는 패턴을 확인했다고 칩시다. 주석 부분은 위와 같은 형태로 옮겨 적어볼 수 있습니다.</p>
+<p><img src="../assets/post03/image21.png" alt=""></p>
+<p><code>ADD</code>, <code>NOR</code>, <code>COPY</code>, <code>SHL</code>, <code>SHR</code> 같은 중요 핸들러들을 스택 상단 연산 + 플래그 복원 패턴만 깔끔하게 네이티브 조각으로 정리해 Keystone 어셈블러로 기계어 바이트로 변환해 <code>patch_buffer</code>에  순서대로 쌓았고, 원본 파일을 복제한 <code>devirtualizeme_unpacked.exe</code>의 미리 잡아둔 오프셋에 이 버퍼를 그대로 덮어씌우도록 동작시켰습니다.</p>
+<p><img src="../assets/post03/image22.png" alt=""></p>
+<p>긴 여정의 끝이 보입니다.. VMProtect Devirtualization 과정에서 복원된 실제 x86 코드(Devirtualized code)가 출력되었습니다! 이 코드는 앞의 데이터를 토대로 생성된 네이티브 x86 함수이며, 패치 후 IDA에서 해당 영역을 보면 난독화된 VMP 코드 대신 위와 같은 깔끔한 어셈블리가 자리잡고 있는 것을 확인할 수 있을 것입니다.</p>
+<p><img src="../assets/post03/image23.png" alt=""></p>
+<p>패치 후 비교를 위해 <code>.vmp0</code> 영역의 시작 부분을 비교해봤습니다. 먼저 패치 전 코드에는 VMP 전용 섹션에 의미 없는 연산과 점프가 얽혀 있는 난독화 코드가 존재한다는 것을 확인합니다.</p>
+<p><img src="../assets/post03/image24.png" alt=""></p>
+<p>패치 후에는 동일 위치에 스택에서 값을 꺼내 <code>AND</code>/<code>SHR</code>/<code>SHL</code> 하는 평범한 네이티브 x86 함수가 들어가 있습니다. 패치된 바이너리를 실행해보면, 더 이상 VMProtect 엔진을 거치지 않고 복원된 네이티브 함수로 바로 실행되어, P를 눌렀을 때 가상화 함수가 동작했던 원래와 동일한 메세지 박스가 출력됩니다!</p>
+<h2>마무리: 가상화 해제 성공</h2>
+<p><img src="../assets/post03/image25.png" alt=""></p>
+<p>가상화 해제에 성공한 캡처를 올리며 글을 마무리하도록 하겠습니다. 가상화된 대상 함수에 대해서는 <code>vir_Entry</code>를 패치해, VMP 디스패처 대신 구현한 네이티브 코드 블록으로 직접 분기하도록 구성했습니다. 원래는 2편까지 하려고 했는데, 뭔가 더 어려운 가상화 해제 문제도 unpack 해보고 싶다는 생각이 드네요..  또한 이번 part 2를 작성하며 LLVM과 결합해 복잡한 바이너리를 어느 수준까지 가상화 해제할 수 있을지도 고민해보았고, 만약 이어서 시리즈를 쓴다면 아마 이 주제가 되지 않을까 싶습니다.</p>
+<p>저와 함께 난독화 해제의 여정을 함께 해주셔서 감사합니다.😁</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.hljs) hljs.highlightAll();
+        });
+    </script>
+</body>
+
+</html>

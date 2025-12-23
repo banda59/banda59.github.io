@@ -1,1 +1,372 @@
-준비 중입니다.
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banda's Portfolio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* Portfolio 전용 스타일 */
+        :root {
+            --primary-bg: #000;
+            --secondary-bg: #0d0d0d;
+            --text-color: #fff;
+            --accent-purple: #ab96ff;
+            --accent-blue: #6b6bff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Sweet500', 'kyobo', sans-serif; /* 일반 텍스트는 Sweet 폰트 우선 */
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px; /* 전체 페이지 여백 */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 상단 정렬 */
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .portfolio-container {
+            display: flex;
+            flex-direction: column; /* 작은 화면에서는 세로 정렬 */
+            width: 100%;
+            max-width: 1200px; /* 최대 너비 제한 */
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 8px var(--shadow-color);
+            padding: 30px;
+            gap: 30px; /* 섹션 간 간격 */
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .portfolio-container {
+                flex-direction: row; /* 큰 화면에서는 두 열로 정렬 */
+                padding: 40px;
+            }
+        }
+
+        .sidebar {
+            flex: 0 0 250px; /* 큰 화면에서 사이드바 고정 너비 */
+            padding-right: 30px;
+            border-right: 1px solid var(--border-color);
+            position: sticky; /* 스크롤 시 사이드바 고정 */
+            top: 20px; /* 상단에서 20px 떨어지게 */
+            align-self: flex-start; /* 컨테이너 상단에 정렬 */
+        }
+
+        @media (max-width: 767px) {
+            .sidebar {
+                flex: none;
+                width: 100%;
+                padding-right: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color); /* 모바일에서 하단 구분선 */
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                position: static; /* 모바일에서는 고정 해제 */
+            }
+            body {
+                padding: 1em;
+                font-size: 13px; /* 기본 폰트 크기 추가 축소 */
+            }
+            .portfolio-container {
+                padding: 1em; /* 컨테이너 패딩 축소 */
+                gap: 15px; /* 간격 축소 */
+            }
+            .profile-picture {
+                width: 60px; /* 프로필 사진 크기 대폭 축소 */
+                height: 60px;
+            }
+            .name {
+                font-size: 1.6em; /* 이름 크기 축소 */
+            }
+            .tagline {
+                font-size: 0.9em; /* 태그라인 크기 축소 */
+            }
+            .section-title {
+                font-size: 1.4em; /* 섹션 제목 크기 축소 */
+                margin-bottom: 15px;
+                padding-bottom: 8px;
+            }
+            .project-card {
+                padding: 10px; /* 프로젝트 카드 패딩 축소 */
+            }
+            .project-card h3 {
+                font-size: 1.1em; /* 프로젝트 제목 크기 축소 */
+            }
+            .project-card p {
+                font-size: 0.9em; /* 프로젝트 설명 크기 축소 */
+            }
+            .section-content p, .section-content ul {
+                font-size: 0.95em;
+            }
+            .keyword-pills {
+                gap: 8px; /* 키워드 알약 간격 축소 */
+                margin-top: 15px;
+            }
+            .pill {
+                font-size: 11px; /* 알약 폰트 크기 축소 */
+                padding: 1px 8px;
+            }
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        /* 프로필 섹션 */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-picture {
+            width: 100px; /* 프로필 사진 크기 대폭 축소 */
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-purple);
+            margin-bottom: 15px;
+        }
+
+        .name {
+            font-family: 'Sweet900', sans-serif;
+            font-size: 2.2em;
+            color: var(--accent-purple);
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-family: 'kyobo', sans-serif;
+            font-size: 1.1em;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        /* 콘텐츠 섹션 */
+        .content-section {
+            margin-bottom: 40px;
+        }
+
+        .content-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-family: 'Sweet900', sans-serif;
+            font-size: 1.8em;
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-content p, .section-content ul {
+            font-family: 'Sweet500', sans-serif;
+            font-size: 1em;
+            color: var(--text-color);
+            margin-bottom: 1em;
+        }
+
+        .section-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .section-content ul li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+        }
+
+        .section-content ul li::before {
+            content: '•'; /* 글머리 기호 */
+            color: var(--accent-purple);
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        /* 키워드 알약 스타일 */
+        .keyword-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: flex-start; /* 왼쪽 정렬로 변경 */
+            margin-top: 30px; /* 소개 문단과의 간격 */
+            padding: 10px 0;
+        }
+
+        .pill {
+          padding: 2px 12px;
+          background: #ffffff;
+          border: 2px solid #8f95ff;
+          border-radius: 999px;
+          color: #6f6fff;
+          font-size: 14px;
+          font-weight: 600;
+          text-align: center;
+          box-sizing: border-box;
+        }
+
+        /* 프로젝트 카드 (예시) */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background-color: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+
+        .project-card h3 {
+            font-family: 'Sweet700', sans-serif;
+            color: var(--accent-purple);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .project-card p {
+            font-size: 0.95em;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+
+        .project-card a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .project-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* 일반 링크 스타일 */
+        a {
+            color: var(--accent-purple);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 480px 반응형 조정은 767px 미디어 쿼리로 통합되었습니다. */
+    </style>
+</head>
+<body>
+    <div class="portfolio-container">
+        <aside class="sidebar">
+            <div class="profile-section">
+                <img src="../sprites/profile.jpg" alt="Profile Picture" class="profile-picture">
+                <h1 class="name">방세연(banda)</h1>
+                <p class="tagline">Infosec | CyberSec | Learner</p>
+            </div>
+            <nav>
+                <!-- 페이지 내 빠른 이동을 위한 네비게이션 링크 (선택 사항) -->
+                <ul>
+                    <li><a href="#introduction">소개</a></li>
+                    <li><a href="#education">학력 및 소속</a></li>
+                    <li><a href="#activities">활동 및 발표</a></li>
+                    <li><a href="#experience">수상사항</a></li>
+                    <li><a href="#projects">프로젝트</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <section id="introduction" class="content-section">
+                <h2 class="section-title">소개</h2>
+                <div class="section-content">
+                    <p>Cyber Security Researcher</p>
+                    <div class="keyword-pills">
+                        <div class="pill">Windows Security</div>
+                        <div class="pill">Boot System</div>
+                        <div class="pill">Deobfuscation</div>
+                        <div class="pill">Incident Response</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="education" class="content-section">
+                <h2 class="section-title">학력 및 소속</h2>
+                <div class="section-content">
+                    <ul>
+                        <li><strong>경기여자고등학교 졸업</strong></li>
+                        <li><strong>서울여자대학교</strong> - 사이버보안전공 (2024.03 - 재학 중)</li>
+                        <li>정보보호소학회 SWING (2024.03 - 현재)</li>
+                        <li>Hackyboiz (2025.03 - 현재)</li>
+                        
+                    </ul>
+                </div>
+            </section>
+
+            <section id="activities" class="content-section">
+                <h2 class="section-title">활동 및 발표</h2>
+                <div class="section-content">
+                    <ul>
+                        <li>화이트햇 3기 수료 (2025.03 - 2025.09)</li>
+                        <li>SWING 칼럼 스터디 <br>- Windows Active Directory (2025.02-2025.07)</li>
+                        <li>SWING 1th TECH SEMINAR <br>- [Suricata 기반의 NIDS/NIPS] (2024)</li>
+                        <li>ASC&SWING 연합 세미나 <br>- [Windows Kernel Minifilter Driver LPE] (2025)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="experience" class="content-section">
+                <h2 class="section-title">수상사항</h2>
+                <div class="section-content">
+                    <ul>
+                        <li>화이트햇스쿨 3기 - 우수프로젝트상</li>
+                        <li>Programming GURU1 - 개인상</li>
+                        <li>AutoHack 2025 - 본선</li>
+                        <li>2025 SWING CTF - 개인 2등, 팀 2등</li>
+
+                    </ul>
+                </div>
+            </section>
+
+            <section id="projects" class="content-section">
+                <h2 class="section-title">프로젝트</h2>
+                <div class="section-content project-grid">
+                    <div class="project-card">
+                        <h3>🐜 Windows Kernel Driver & Named Pipe LPE Bug Hunting</h3>
+                        <p>OWASP Seoul Chapter 25.07/ 해킹캠프 25.08<br>Windows 11 Kernel Driver/ Named Pipe 대상 권한 상승 버그헌팅 프로젝트</p>
+                        <p></p>
+                        <p><a href="#">25.05-25.08</a></p>
+                    </div>
+                    <div class="project-card">
+                        <h3>🐜 Windows 상용 프로그램 Bug Hunting</h3>
+                        <p>Windows 상용 프로그램 대상으로 WinAFL, BFF 등 다양한 퍼저 사용 및 취약점 분석</p>
+                        <p><a href="#">24.09-25.01</a></p>
+                    </div>
+                    <div class="project-card">
+                        <h3>🦦 Suricata Based NIDS/NIPS</h3>
+                        <p>미국 국토안보부에서 OISF를 설립해 만든 Suricata 프로그램을 대상으로 실제 시나리오를 통해 NIDS/NIPS 모니터링 실습 재현.</p>
+                        <p><a href="#">24.03-24.12</a></p>
+                    </div>
+                </div>
+            </section>
+            <br><br><br><br><br>
+        </main>
+    </div>
+</body>
+</html>

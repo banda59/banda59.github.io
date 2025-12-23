@@ -1,0 +1,584 @@
+@font-face {
+  font-family: 'kyobo';
+  src: url('./fonts/KyoboHandwriting2024psw.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'omori1';
+  src: url('./fonts/OMORI_GAME.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'omori2';
+  src: url('./fonts/OMORI_GAME2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet300';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet400';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet500';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet600';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet700';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet800';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sweet900';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Heavy.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+* {
+  cursor: url(https://cur.cursors-4u.net/symbols/sym-7/sym637.ani), url(https://cur.cursors-4u.net/symbols/sym-7/sym637.png), auto !important;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+  color: white;
+  font-family: 'kyobo', 'omori1', 'omori2', monospace;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+#introPanel {
+  position: relative;
+  width: min(90vw, 1280px, 128vh);
+  height: min(80vh, 800px, 56.25vw);
+  background: #000;
+  border: 1px solid #fff;
+  box-shadow: none;
+  transition: opacity 900ms ease, background-color 900ms ease, border-color 900ms ease;
+  opacity: 1;
+}
+
+#introText {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  width: min(74vw, 860px);
+  text-align: center;
+  font-family: 'omori2', 'kyobo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: clamp(18px, 2.8vw, 34px);
+  line-height: 1.0;
+  letter-spacing: 0.5px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 900ms ease;
+  user-select: none;
+  white-space: pre-line;
+}
+
+#introText .hl {
+  color: #6b6bff;
+}
+
+#introText .hl-cherry {
+  color: #ff33cc;
+}
+
+#introBtn {
+  position: absolute;
+  left: 50%;
+  top: 72%;
+  transform: translate(-50%, -50%);
+  padding: 10px 20px;
+  background: transparent;
+  border: 2px solid #ab96ff;
+  color: #be92ff;
+  font-family: 'omori2', 'kyobo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: clamp(20px, 2.5vw, 26px);
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 650ms ease;
+  pointer-events: none;
+}
+
+#introBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+#introBtn:disabled {
+  cursor: default;
+}
+
+#instructionText {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #888;
+  font-family: 'omori2', 'kyobo', monospace;
+  font-size: clamp(24px, 3.5vw, 32px);
+  pointer-events: none;
+  display: none;
+}
+
+#instructionText.show {
+  display: block;
+  animation: instructionPopup 5s ease-in-out forwards;
+}
+
+#skipBtn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid #888;
+  color: #888;
+  font-family: 'kyobo', monospace;
+  font-size: 14px;
+  cursor: pointer;
+  display: none;
+  /* Initially hidden */
+  z-index: 16;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+#skipBtn:hover {
+  color: #fff;
+  border-color: #fff;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+#privacyNotice {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #666;
+  font-family: 'kyobo', monospace;
+  font-size: clamp(11px, 2vw, 14px);
+  pointer-events: none;
+  opacity: 0;
+  animation: privacyFade 6s ease-in-out forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes privacyFade {
+  0% {
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+#sleepWrap {
+  position: fixed;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  z-index: 11;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--sleepSize, 96px);
+  height: var(--sleepSize, 96px);
+
+  pointer-events: none;
+  opacity: 1;
+}
+
+#sleepCv {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+#credit {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 16px;
+  z-index: 15;
+
+  text-align: center;
+  font-family: 'omori2', 'kyobo', monospace;
+  font-size: 32px;
+  color: #c4b9ff;
+
+  pointer-events: none;
+  user-select: none;
+
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 4px 12px;
+  border-radius: 10px;
+  /* transition 속성을 제거하여 '팝업' 모션을 없앱니다. */
+}
+
+#portfolio-logo {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 5px;
+  z-index: 15;
+  pointer-events: none;
+  user-select: none;
+}
+
+#portfolio-logo img {
+  display: block;
+  width: 500px;
+  margin-bottom: 5px;
+}
+
+#volumeBtn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 20;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  user-select: none;
+  padding: 0;
+}
+
+#volumeBtn img {
+  width: 80px;
+  height: 80px;
+}
+
+#volumeBtn:active {
+  transform: scale(0.9);
+}
+
+#intro.cleared {
+  pointer-events: none;
+}
+
+#intro.cleared #introPanel {
+  opacity: 0;
+  border-color: rgba(255, 255, 255, 0.0);
+  background: rgba(0, 0, 0, 0.0);
+}
+
+#intro.cleared #introText,
+#intro.cleared #introBtn {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  #introText,
+  #introPanel,
+  #introBtn {
+    transition: none;
+  }
+}
+
+#speechBubble {
+  position: absolute;
+  bottom: 105%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #000;
+  padding: 6px 10px;
+  color: #000;
+  font-family: 'kyobo', monospace;
+  font-size: 14px;
+  white-space: nowrap;
+  display: none;
+  z-index: 100;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+#speechBubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: #000 transparent transparent transparent;
+}
+
+#achievementPopup {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 360px);
+  background: #000;
+  border: 2px solid #fff;
+  padding: 12px;
+  z-index: 200;
+  text-align: center;
+  transition: top 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.5s ease;
+  box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  opacity: 0;
+}
+
+#achievementPopup.show {
+  top: 20px;
+  opacity: 1;
+}
+
+.ach-title {
+  color: #ccff00;
+  font-family: 'omori2', monospace;
+  font-size: 18px;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.ach-desc {
+  color: #fff;
+  font-family: 'kyobo', monospace;
+  font-size: 16px;
+}
+
+#gameFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+#gameFrame.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Content Overlay */
+#contentContainer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#contentWindow {
+  --sbw: clamp(110px, 12vw, 170px);
+  --pad: clamp(12px, 1.4vw, 22px);
+  width: min(90vw, 1280px);
+  height: min(80vh, 800px);
+  background: #000;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#contentFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 10;
+}
+
+#uiLayer{
+  position:absolute;
+  right: var(--pad);
+  bottom: var(--pad);
+  z-index:40;
+  width: clamp(160px, 18vw, 280px);
+  height: clamp(220px, 25vh, 360px);
+  pointer-events:none;
+  transform: translateZ(0);
+}
+
+#sideBanda{
+  width: 100%;
+  height: 100%;
+  background-image: url('sprites/side_banda.png');
+  background-repeat:no-repeat;
+  background-position:right bottom;
+  background-size:contain;
+  image-rendering:pixelated;
+  pointer-events:none;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+#backBtn{
+  position: absolute;
+  right: clamp(10px, 2vw, 20px);
+  bottom: clamp(10px, 2vh, 20px);
+  pointer-events:auto;
+
+  padding: clamp(8px, 1.0vw, 12px) clamp(10px, 1.2vw, 18px);
+  background: #000;
+  border: 2px solid #fff;
+
+  color:#fff;
+  font-family:'kyobo', monospace;
+  font-size: clamp(14px, 1.6vw, 20px);
+  letter-spacing: 1px;
+
+  cursor:pointer;
+  user-select:none;
+  image-rendering:pixelated;
+
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+#backBtn:hover{
+  transform: translateY(-1px) translateZ(0);
+}
+#backBtn:active{
+  transform: translateY(1px) translateZ(0);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  #credit {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  #portfolio-logo img {
+    width: 80vw;
+    max-width: 400px;
+  }
+
+  #introText {
+    /* 모바일에서 텍스트와 캐릭터가 겹치지 않도록 위치와 크기를 조정합니다. */
+    top: 34%;
+    font-size: clamp(16px, 4vw, 20px);
+  }
+
+  #sleepWrap {
+    /* 모바일에서 텍스트 및 버튼과 겹치지 않도록 캐릭터 위치를 조정합니다. */
+    top: 50%;
+  }
+
+  #introBtn {
+    /* 모바일 화면에 맞게 버튼 위치를 조정합니다. */
+    top: 72%;
+    font-size: clamp(16px, 4vw, 18px);
+    padding: 6px 10px;
+  }
+
+  #skipBtn {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  #achievementPopup {
+    width: min(85%, 300px); /* 모바일에서 너비와 패딩 축소 */
+    padding: 8px;
+  }
+
+  .ach-title {
+    font-size: 15px; /* 모바일 폰트 크기 조정 */
+  }
+
+  .ach-desc {
+    font-size: 13px; /* 모바일 폰트 크기 조정 */
+  }
+}

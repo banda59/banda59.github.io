@@ -57,10 +57,10 @@
             background-color: #000;
             color: #fff;
             font-family: 'kyobo', 'Malgun Gothic', sans-serif;
-            font-size: 20px;
+            font-size: 18px;
             line-height: 1.6;
             margin: 0;
-            padding: 2em;
+            padding: 1.5em;
             text-align: center;
         }
 
@@ -68,10 +68,10 @@
         .contact-container {
             --final-scale: 1; /* 최종 크기를 위한 CSS 변수 */
 
-            max-width: 550px;
+            max-width: 500px;
             margin: 0 auto;
             border: 1px solid #ab96ff;
-            padding: 2em;
+            padding: 1.5em;
             /* OMORI 스타일의 그림자 효과 */
             box-shadow: 
                 -2px 0 #ab96ff, 2px 0 #ab96ff,
@@ -118,21 +118,21 @@
         /* 명함 헤더 */
         .card-header {
             text-align: left;
-            margin-bottom: 2em;
+            margin-bottom: 1.5em;
             border-bottom: 2px dotted #555;
-            padding-bottom: 1.5em;
+            padding-bottom: 1em;
         }
 
         .name {
             font-family: 'Sweet900', sans-serif;
-            font-size: 32px;
+            font-size: 28px;
             color: #fff;
             margin: 0;
         }
 
         .title {
             font-family: 'Sweet500', sans-serif;
-            font-size: 18px;
+            font-size: 16px;
             color: #ccc;
             margin-top: 8px;
         }
@@ -147,7 +147,7 @@
         }
 
         .contact-list li {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-bottom: 2px dotted #555;
             display: flex;
             align-items: center;
@@ -172,7 +172,7 @@
 
         .contact-list .label {
             display: inline-block;
-            width: 100px;
+            width: 90px;
             color: #999;
             font-family: 'Sweet600', sans-serif;
         }
@@ -187,18 +187,18 @@
 
         /* 하단 텍스트 */
         .footer-text {
-            margin-top: 3em;
-            font-size: 16px;
+            margin-top: 2em;
+            font-size: 14px;
             color: #777;
             font-family: 'Sweet600', sans-serif;
         }
 
         /* 하단 크레딧 */
         .site-credit {
-            max-width: 600px;
+            max-width: 550px;
             margin: 3em auto 0;
             font-family: 'omori2', sans-serif;
-            font-size: 25px;
+            font-size: 22px;
             color: #666;
             line-height: 1;
             text-align: left;
@@ -212,7 +212,7 @@
         .site-credit .korean {
             font-family: 'kyobo', sans-serif;
             line-height: 1.5;
-            font-size: 20px;
+            font-size: 18px;
             margin-top: 2em;
         }
         
@@ -228,6 +228,52 @@
             width: 96px;
             height: 96px;
             image-rendering: pixelated;
+        }
+
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            body {
+                padding: 1.5em 1em;
+                font-size: 16px; /* 기본 폰트 크기 조정 */
+            }
+            .contact-container {
+                padding: 1.2em; /* 내부 여백 축소 */
+            }
+            .name {
+                font-size: 24px; /* 이름 폰트 크기 축소 */
+            }
+            .title {
+                font-size: 14px; /* 직책 폰트 크기 축소 */
+            }
+            .contact-list li {
+                padding: 8px 10px; /* 목록 아이템 여백 축소 */
+            }
+            .contact-list .label {
+                width: 80px; /* 레이블 너비 축소 */
+            }
+            .contact-list .value {
+                font-size: 15px; /* 값 폰트 크기 조정 */
+            }
+            .footer-text {
+                font-size: 13px; /* 하단 텍스트 크기 축소 */
+                margin-top: 1.5em;
+            }
+            .site-credit {
+                font-size: 16px; /* 크레딧 폰트 크기 축소 */
+                padding: 0 1em;
+                text-align: center;
+                margin-top: 2em;
+            }
+            .site-credit .korean {
+                font-size: 14px; /* 한글 크레딧 폰트 크기 축소 */
+            }
+            .character-animation-container {
+                margin-bottom: 5em; /* 하단 여백 축소 */
+            }
+            #contact-char-canvas {
+                width: 80px; /* 캐릭터 크기 축소 */
+                height: 80px;
+            }
         }
     </style>
 </head>
@@ -259,9 +305,9 @@
                 </a>
             </li>
             <li>
-                <a href="https://www.instagram.com/bandpwn" target="_blank">
+                <a href="https://www.instagram.com/b4nd59" target="_blank">
                     <span class="label">SNS</span>
-                    <span class="value">@bandpwn</span>
+                    <span class="value">@b4nd59</span>
                 </a>
             </li>
         </ul>

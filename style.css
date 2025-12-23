@@ -1,20 +1,20 @@
 @font-face {
   font-family: 'kyobo';
-  src: url('./fonts/KyoboHandwriting2024psw.ttf') format('woff2');
+  src: url('./fonts/KyoboHandwriting2024psw.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'omori1';
-  src: url('./fonts/OMORI_GAME.ttf') format('woff2');
+  src: url('./fonts/OMORI_GAME.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'omori2';
-  src: url('./fonts/OMORI_GAME2.ttf') format('woff2');
+  src: url('./fonts/OMORI_GAME2.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
