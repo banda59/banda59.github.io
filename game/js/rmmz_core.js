@@ -861,7 +861,8 @@ Graphics._makeErrorHtml = function(name, message /*, error*/) {
 };
 
 Graphics._defaultStretchMode = function() {
-    return Utils.isNwjs() || Utils.isMobileDevice();
+    // Always stretch to fit the window to ensure consistent coordinate calculation.
+    return true;
 };
 
 Graphics._createErrorPrinter = function() {

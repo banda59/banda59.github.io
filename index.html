@@ -556,66 +556,38 @@
 
       window.addEventListener('keydown', e => {
         const k = e.key.toLowerCase();
-        if (keys.hasOwnProperty(k)) {
-            keys[k] = true; // For intro character movement
-        }
 
         const gameFrame = document.getElementById('gameFrame');
         // If the game is active, forward the key press to the iframe.
         if (gameFrame.classList.contains('active')) {
             // Prevent default browser actions for game keys (like scrolling).
-            if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'enter', ' '].includes(k)) {
+            if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'enter', ' ', 'escape'].includes(k)) {
                 e.preventDefault();
             }
-            dispatchKeyEventToGame('keydown', e.key);
+            // Ensure the game has focus to receive the event.
+            if (document.activeElement !== gameFrame) {
+                gameFrame.contentWindow.focus();
+            }
+        } else {
+            // Only handle intro movement if the game is NOT active.
+            if (keys.hasOwnProperty(k)) {
+                keys[k] = true;
+            }
         }
       });
 
       window.addEventListener('keyup', e => {
           const k = e.key.toLowerCase();
-          if (keys.hasOwnProperty(k)) {
-              keys[k] = false; // For intro character movement
-          }
           
           const gameFrame = document.getElementById('gameFrame');
-          if (gameFrame.classList.contains('active')) {
-              dispatchKeyEventToGame('keyup', e.key);
+
+          if (!gameFrame.classList.contains('active')) {
+              // Only handle intro movement if the game is NOT active.
+              if (keys.hasOwnProperty(k)) {
+                  keys[k] = false;
+              }
           }
       });
-      const keyEventProps = (key) => {
-          const upperKey = key.toUpperCase();
-          let code = `Key${upperKey}`;
-          let keyCode = upperKey.charCodeAt(0);
-
-          if (key === 'Enter') {
-              code = 'Enter';
-              keyCode = 13;
-          } else if (key === ' ') {
-              code = 'Space';
-              keyCode = 32;
-          } else if (key === 'Escape') {
-              code = 'Escape';
-              keyCode = 27;
-          }
-          
-          return { key: key, code: code, keyCode: keyCode, which: keyCode, bubbles: true, cancelable: true };
-      };
-
-      const dispatchKeyEventToGame = (type, key) => {
-        const gameFrame = document.getElementById('gameFrame');
-        if (!gameFrame || !gameFrame.contentWindow || !gameFrame.classList.contains('active')) {
-            return;
-        }
-        
-        // Re-focus the iframe's content window. This is crucial as clicks/touches
-        // on the parent page can steal focus from the game.
-          gameFrame.contentWindow.focus();
-        // Use a minimal timeout to ensure the focus event has been processed
-        // before we dispatch the key event. This helps prevent a race condition.
-        setTimeout(() => {
-            gameFrame.contentWindow.document.dispatchEvent(new KeyboardEvent(type, keyEventProps(key)));
-        }, 0);
-      };
 
       function playSfx() {
         if (!audioUnlocked || introSkipped) return;

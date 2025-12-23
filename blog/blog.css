@@ -136,8 +136,8 @@ body {
 .post-list .post-item {
     background-color: var(--secondary-bg);
     border: 1px solid var(--border-color);
-    padding: 15px; /* 게시글 블록 내부 여백 추가 축소 */
-    margin-bottom: 20px; /* 게시글 블록 간격 추가 축소 */
+    padding: 12px; /* 게시글 블록 내부 여백 추가 축소 */
+    margin-bottom: 15px; /* 게시글 블록 간격 추가 축소 */
     border-radius: 8px;
     transition: border-color 0.3s ease;
 }
@@ -147,7 +147,7 @@ body {
 }
 
 .post-title {
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
     font-family: 'Sweet700', sans-serif;
     font-size: 1.3em; /* 게시글 제목 폰트 크기 추가 축소 */
 }
@@ -165,7 +165,7 @@ body {
     font-family: 'Sweet500', sans-serif;
     font-size: 0.8em; /* 게시글 메타 정보 폰트 크기 추가 축소 */
     color: var(--text-color-light);
-    margin: 0 0 15px 0;
+    margin: 0 0 10px 0;
 }
 
 .post-meta a {
@@ -186,7 +186,7 @@ body {
 
 .read-more {
     display: inline-block;
-    margin-top: 12px; /* 'Read More' 상단 여백 추가 축소 */
+    margin-top: 10px; /* 'Read More' 상단 여백 추가 축소 */
     font-family: 'Sweet600', sans-serif;
     color: var(--accent-blue);
     text-decoration: none;
