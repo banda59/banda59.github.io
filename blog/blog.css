@@ -16,34 +16,34 @@ body {
     background-color: var(--primary-bg);
     color: var(--text-color);
     font-family: 'Sweet500', 'kyobo', sans-serif;
-    font-size: 14px; /* 전체적인 UI 크기를 줄이기 위해 기본 폰트 크기를 설정합니다. */
+    font-size: 13px; /* 전체적인 UI 크기를 줄이기 위해 기본 폰트 크기를 설정합니다. */
     line-height: 1.7;
     margin: 0;
     padding: 20px;
     min-height: 100vh;
     box-sizing: border-box;
-    /* display: flex를 제거하여 레이아웃 복잡성을 줄입니다. */
+    overflow-x: hidden; /* 가로 스크롤을 강제로 숨깁니다. */
 }
 
 .blog-container {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 1000px; /* 전체 컨테이너 최대 너비 추가 축소 */
+    max-width: 960px; /* 전체 컨테이너 최대 너비 축소 */
     margin: 0 auto; /* body가 더 이상 flex가 아니므로, 여기서 컨테이너를 가운데 정렬합니다. */
-    gap: 30px;
+    gap: 20px;
 }
 
 @media (min-width: 768px) {
     .blog-container {
         flex-direction: row;
-        padding: 40px;
+        padding: 30px;
     }
 }
 
 /* --- Sidebar --- */
 .sidebar {
-    flex: 0 0 220px; /* 사이드바 너비 추가 축소 */
+    flex: 0 0 200px; /* 사이드바 너비 축소 */
     padding-right: 20px;
     position: sticky;
     top: 40px;
@@ -200,7 +200,8 @@ body {
 /* Single Post */
 .single-post-container {
     display: block; /* .blog-container의 flex 설정을 무시하고 일반 블록으로 만듭니다. */
-    max-width: 680px; /* 개별 게시글 컨테이너 최대 너비 추가 축소 */
+    max-width: 100%; /* 컨테이너 너비에 맞게 유동적으로 조절 */
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
     margin: 0 auto;
     padding: 20px;
     background-color: var(--secondary-bg);

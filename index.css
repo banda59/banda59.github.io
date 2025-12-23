@@ -581,4 +581,10 @@ canvas {
   .ach-desc {
     font-size: 13px; /* 모바일 폰트 크기 조정 */
   }
+
+  #contentWindow {
+    /* 모바일에서 콘텐츠 창을 더 넓게 표시합니다. */
+    width: 95vw;
+    height: 70vh;
+  }
 }
