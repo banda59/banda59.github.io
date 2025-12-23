@@ -907,7 +907,7 @@
         btn.style.opacity = '0';
         btn.style.pointerEvents = 'none';
         skipBtn.style.display = 'none';
-        document.getElementById('privacyNotice').style.display = 'none';
+        document.querySelectorAll('.privacyNotice').forEach(el => el.style.display = 'none');
         if (volumeOn) btnSfx.play().catch(() => { });
         animState = 'game_transition';
         animIdx = 0;
