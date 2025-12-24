@@ -9,7 +9,28 @@
     <title>banda log</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="blog.css">
+    <link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUITE@2/fonts/static/woff2/SUITE.css" rel="stylesheet">
     <style>
+        body {
+            /* 'SUITE' 폰트를 기본으로 적용합니다. */
+            font-family: 'SUITE', sans-serif;
+            font-weight: 400; /* 기본 굵기 */
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 800; /* 제목에는 더 굵은 굵기를 적용합니다. */
+        }
+
+        /* 코드 블록은 폰트 적용에서 제외하고 고정폭 폰트를 사용합니다. */
+        pre, code, kbd, samp {
+            font-family: 'Consolas', 'Monaco', 'Menlo', monospace;
+        }
+
+        /* strong, b 태그가 굵게 표시되도록 수정 */
+        strong, b {
+            font-weight: 800;
+        }
+
         /* 모바일 반응형 스타일 */
         @media (max-width: 768px) {
             .blog-container {

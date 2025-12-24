@@ -1,9 +1,9 @@
 {
   "posts": [
     {
-      "title": "VMProtect 가상화 난독화 해제 Part 02",
-      "date": "2025-08-15",
-      "date_human": "August 15, 2025",
+      "title": "VMProtect Devirtualization Deobfuscation Part 02",
+      "date": "2025-12-11",
+      "date_human": "December 11, 2025",
       "tags": [
         "VMProtect",
         "UnpackMe",
@@ -11,17 +11,19 @@
         "Rev"
       ],
       "excerpt": "VMPortect Devirtualization Challenge WriteUp",
-      "slug": "post03"
+      "slug": "post03",
+      "previewImage": "./assets/post03/image1.png"
     },
     {
-      "title": "VMProtect 가상화 난독화 해제 Part 01",
-      "date": "2025-08-15",
-      "date_human": "August 15, 2025",
+      "title": "VMProtect Devirtualization Deobfuscation Part 01",
+      "date": "2025-09-11",
+      "date_human": "September 11, 2025",
       "tags": [
         "Rev"
       ],
       "excerpt": "LLVM Based VMP Devirtualization",
-      "slug": "post02"
+      "slug": "post02",
+      "previewImage": "./assets/post02/image2.png"
     },
     {
       "title": "Road to Windows Minifilter Drivers (CVE-2024-30085)",
@@ -31,7 +33,8 @@
         "Windows"
       ],
       "excerpt": "Windows Minifilter Driver 분석&1-day",
-      "slug": "post01"
+      "slug": "post01",
+      "previewImage": "./assets/post01/image2.gif"
     }
   ]
 }

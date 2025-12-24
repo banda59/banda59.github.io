@@ -1,6 +1,6 @@
 ---
-title: "VMProtect 가상화 난독화 해제 Part 01"
-date: "2025-08-15"
+title: "VMProtect Devirtualization Deobfuscation Part 01"
+date: "2025-09-11"
 tags: ["Rev"]
 excerpt: "LLVM Based VMP Devirtualization"
 ---

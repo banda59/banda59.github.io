@@ -32,19 +32,32 @@
 
     const href = `./posts/${encodeURIComponent(p.slug)}.html`;
 
+    const imageHtml = p.previewImage
+      ? `
+      <div class="post-item-image-wrapper">
+        <a href="${href}">
+          <img src="${p.previewImage}" alt="${p.title} Preview" class="post-item-image">
+        </a>
+      </div>
+      `
+      : '';
+
     return `
       <article class="post-item">
-        <header class="post-header">
-          <h3 class="post-title"><a href="${href}">${p.title}</a></h3>
-          <p class="post-meta">
-            <time datetime="${p.date}">${p.date_human || p.date}</time> |
-            <span class="post-tags">${ts}</span>
-          </p>
-        </header>
-        <div class="post-excerpt">
-          <p>${p.excerpt || ""}</p>
+        <div class="post-item-content">
+          <header class="post-header">
+            <h3 class="post-title"><a href="${href}">${p.title}</a></h3>
+            <p class="post-meta">
+              <time datetime="${p.date}">${p.date_human || p.date}</time> |
+              <span class="post-tags">${ts}</span>
+            </p>
+          </header>
+          <div class="post-excerpt">
+            <p>${p.excerpt || ""}</p>
+          </div>
+          <a href="${href}" class="read-more">Read More &rarr;</a>
         </div>
-        <a href="${href}" class="read-more">Read More &rarr;</a>
+        ${imageHtml}
       </article>
     `;
   }).join("");

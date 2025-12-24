@@ -81,6 +81,20 @@ for (const fn of files) {
 
     const content = md.render(bodyMd);
 
+    // Extract all image URLs to find a suitable preview
+    const imageRegex = /<img src="([^"]+)"/g;
+    const allImages = [...content.matchAll(imageRegex)].map(match => match[1]);
+
+    let previewImage = null;
+    if (allImages.length > 0) {
+        // Prefer the second image if it exists, otherwise fall back to the first.
+        const imageUrl = allImages.length >= 2 ? allImages[1] : allImages[0];
+
+        // The path in content is like ../assets/slug/image.png
+        // For index.html, we need ./assets/slug/image.png
+        previewImage = imageUrl.replace(/^\.\.\//, './');
+    }
+
     const tagsHtml = tags
         .map(t => `<a href="../index.html?tag=${encodeURIComponent(t)}">${esc(t)}</a>`)
         .join(", ");
@@ -104,7 +118,7 @@ for (const fn of files) {
         }
     }
 
-    posts.push({ title, date, date_human: fmt(date), tags, excerpt, slug });
+    posts.push({ title, date, date_human: fmt(date), tags, excerpt, slug, previewImage });
 }
 
 posts.sort((a, b) => (a.date < b.date ? 1 : -1));

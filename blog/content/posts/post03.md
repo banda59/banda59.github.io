@@ -1,6 +1,6 @@
 ---
-title: "VMProtect 가상화 난독화 해제 Part 02"
-date: "2025-08-15"
+title: "VMProtect Devirtualization Deobfuscation Part 02"
+date: "2025-12-11"
 tags: ["VMProtect", "UnpackMe", "Devirtualize", "Rev"]
 excerpt: "VMPortect Devirtualization Challenge WriteUp"
 ---

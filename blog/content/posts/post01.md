@@ -16,7 +16,7 @@ excerpt: "Windows Minifilter Driver 분석&1-day"
 
 Minifilter 드라이버는 Windows에서 파일 생성, 열기, 읽기, 쓰기, 삭제와 같은 파일 시스템 I/O 요청을 모니터링하거나 가로채고 변경할 수 있도록 설계된 특수한 목적의 드라이버로, 파일 시스템 활동을 정밀하게 모니터링하는 데에 사용됩니다.
 
-**“파일 접근을 감시하고, 차단하거나 수정하는 것”**을 생각해보면… 잠시만요. **Antivirus, EDR, 백업 프로그램**과 같이 가로채고 모니터링하는 것이 주 목적인 제품에 적합해 보이지 않나요? 맞습니다. 실제로 상당수의 해당 제품들이 Minifilter 드라이버를 사용하고 있는 것을 실제로 제가 확인할 수 있었는데요.
+“파일 접근을 감시하고, 차단하거나 수정하는 것”을 생각해보면… 잠시만요. **Antivirus, EDR, 백업 프로그램**과 같이 가로채고 모니터링하는 것이 주 목적인 제품에 적합해 보이지 않나요? 맞습니다. 실제로 상당수의 해당 제품들이 Minifilter 드라이버를 사용하고 있는 것을 실제로 제가 확인할 수 있었는데요.
 
 Minifiler 드라이버는 다음 세 가지 종류의 요청을 가로채거나 조작할 수 있습니다.
 
@@ -55,7 +55,7 @@ Windows에서 파일 I/O 요청이 처리되는 흐름을 확인해봅시다.
 
 Minifilter 드라이버는 어떻게 특정 파일 작업에 대해서만 동작할 수 있을까요? 이는 콜백(Callback)이라는 메커니즘 덕분입니다.
 
-Minifilter 드라이버는 **DispatchRoutine**을 통해 IRP를 직접 처리하지 않는다고 했죠? 그 대신, Filter Manager를 통해 전달되는 I/O 요청에 “훅(hook)”을 걸 수 있습니다. Minifilter는 이 요청들이 발생할 때 **사전 콜백(`PreOperation Callback`)**과 **사후 콜백(`PostOperation Callback`)**을 등록하여, 감시하고자 하는 I/O 작업을 시스템 수준에서 관찰하거나 제어할 수 있습니다.
+Minifilter 드라이버는 **DispatchRoutine**을 통해 IRP를 직접 처리하지 않는다고 했죠? 그 대신, Filter Manager를 통해 전달되는 I/O 요청에 “훅(hook)”을 걸 수 있습니다. Minifilter는 이 요청들이 발생할 때 사전 콜백(`PreOperation Callback`)과 사후 콜백(`PostOperation Callback`)을 등록하여, 감시하고자 하는 I/O 작업을 시스템 수준에서 관찰하거나 제어할 수 있습니다.
 
 - **사전 작업 콜백 (`PFLT_PRE_OPERATION_CALLBACK`)**
 
