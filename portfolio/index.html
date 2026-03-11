@@ -1,157 +1,132 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banda's Portfolio</title>
-    <link rel="stylesheet" href="../style.css">
     <style>
-        /* Portfolio 전용 스타일 */
         :root {
             --primary-bg: #000;
             --secondary-bg: #0d0d0d;
             --text-color: #fff;
             --accent-purple: #ab96ff;
             --accent-blue: #6b6bff;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --shadow-color: rgba(0, 0, 0, 0.4);
+            --accent-purple-dim: rgba(171, 150, 255, 0.15);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(171, 150, 255, 0.4);
+            --shadow-color: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             background-color: var(--primary-bg);
             color: var(--text-color);
-            font-family: 'Sweet500', 'kyobo', sans-serif; /* 일반 텍스트는 Sweet 폰트 우선 */
+            font-family: 'Sweet500', 'kyobo', sans-serif;
             line-height: 1.6;
             margin: 0;
-            padding: 20px; /* 전체 페이지 여백 */
+            padding: 24px;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 상단 정렬 */
+            align-items: flex-start;
             min-height: 100vh;
-            box-sizing: border-box;
         }
 
         .portfolio-container {
             display: flex;
-            flex-direction: column; /* 작은 화면에서는 세로 정렬 */
+            flex-direction: column;
             width: 100%;
-            max-width: 1200px; /* 최대 너비 제한 */
+            max-width: 1200px;
             background-color: var(--secondary-bg);
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 8px var(--shadow-color);
+            box-shadow: 0 8px 32px var(--shadow-color);
             padding: 30px;
-            gap: 30px; /* 섹션 간 간격 */
-            box-sizing: border-box;
+            gap: 0;
         }
 
         @media (min-width: 768px) {
             .portfolio-container {
-                flex-direction: row; /* 큰 화면에서는 두 열로 정렬 */
-                padding: 40px;
+                flex-direction: row;
+                padding: 0;
             }
         }
 
+        /* ── SIDEBAR ── */
         .sidebar {
-            flex: 0 0 250px; /* 큰 화면에서 사이드바 고정 너비 */
-            padding-right: 30px;
+            flex: 0 0 230px;
+            padding: 40px 28px;
             border-right: 1px solid var(--border-color);
-            position: sticky; /* 스크롤 시 사이드바 고정 */
-            top: 20px; /* 상단에서 20px 떨어지게 */
-            align-self: flex-start; /* 컨테이너 상단에 정렬 */
+            position: sticky;
+            top: 24px;
+            align-self: flex-start;
+            height: fit-content;
         }
 
-        @media (max-width: 767px) {
-            .sidebar {
-                flex: none;
-                width: 100%;
-                padding-right: 0;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color); /* 모바일에서 하단 구분선 */
-                padding-bottom: 20px;
-                margin-bottom: 20px;
-                position: static; /* 모바일에서는 고정 해제 */
-            }
-            body {
-                padding: 1em;
-                font-size: 13px; /* 기본 폰트 크기 추가 축소 */
-            }
-            .portfolio-container {
-                padding: 1em; /* 컨테이너 패딩 축소 */
-                gap: 15px; /* 간격 축소 */
-            }
-            .profile-picture {
-                width: 60px; /* 프로필 사진 크기 대폭 축소 */
-                height: 60px;
-            }
-            .name {
-                font-size: 1.6em; /* 이름 크기 축소 */
-            }
-            .tagline {
-                font-size: 0.9em; /* 태그라인 크기 축소 */
-            }
-            .section-title {
-                font-size: 1.4em; /* 섹션 제목 크기 축소 */
-                margin-bottom: 15px;
-                padding-bottom: 8px;
-            }
-            .project-card {
-                padding: 10px; /* 프로젝트 카드 패딩 축소 */
-            }
-            .project-card h3 {
-                font-size: 1.1em; /* 프로젝트 제목 크기 축소 */
-            }
-            .project-card p {
-                font-size: 0.9em; /* 프로젝트 설명 크기 축소 */
-            }
-            .section-content p, .section-content ul {
-                font-size: 0.95em;
-            }
-            .keyword-pills {
-                gap: 8px; /* 키워드 알약 간격 축소 */
-                margin-top: 15px;
-            }
-            .pill {
-                font-size: 11px; /* 알약 폰트 크기 축소 */
-                padding: 1px 8px;
-            }
-        }
-
-        .main-content {
-            flex: 1;
-        }
-
-        /* 프로필 섹션 */
         .profile-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 36px;
         }
 
         .profile-picture {
-            width: 100px; /* 프로필 사진 크기 대폭 축소 */
-            height: 100px;
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--accent-purple);
-            margin-bottom: 15px;
+            border: 2px solid var(--accent-purple);
+            margin-bottom: 14px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .name {
             font-family: 'Sweet900', sans-serif;
-            font-size: 2.2em;
+            font-size: 1.5em;
             color: var(--accent-purple);
-            margin-bottom: 5px;
+            margin: 0 0 0 0;
+            line-height: 1.2;
         }
 
-        .tagline {
-            font-family: 'kyobo', sans-serif;
-            font-size: 1.1em;
-            color: var(--text-color);
-            opacity: 0.8;
+        /* ── SIDEBAR NAV ── */
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        /* 콘텐츠 섹션 */
+        nav ul li {
+            margin-bottom: 2px;
+        }
+
+        nav ul li a {
+            display: block;
+            padding: 7px 12px;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            font-size: 0.88em;
+            border-radius: 6px;
+            border-left: 2px solid transparent;
+            transition: all 0.18s ease;
+            letter-spacing: 0.02em;
+        }
+
+        nav ul li a:hover {
+            color: var(--accent-purple);
+            background: var(--accent-purple-dim);
+            border-left-color: var(--accent-purple);
+        }
+
+        /* ── MAIN ── */
+        .main-content {
+            flex: 1;
+            padding: 40px 44px;
+        }
+
         .content-section {
-            margin-bottom: 40px;
+            margin-bottom: 44px;
         }
 
         .content-section:last-child {
@@ -160,106 +135,270 @@
 
         .section-title {
             font-family: 'Sweet900', sans-serif;
-            font-size: 1.8em;
+            font-size: 1.05em;
             color: var(--accent-blue);
-            border-bottom: 2px solid var(--accent-blue);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            border-bottom: 1px solid rgba(107, 107, 255, 0.3);
+            padding-bottom: 8px;
+            margin-bottom: 18px;
+            margin-top: 0;
         }
 
-        .section-content p, .section-content ul {
-            font-family: 'Sweet500', sans-serif;
-            font-size: 1em;
+        .section-content p {
+            font-size: 0.95em;
             color: var(--text-color);
-            margin-bottom: 1em;
+            margin-bottom: 0.8em;
         }
 
         .section-content ul {
             list-style: none;
             padding-left: 0;
+            margin: 0;
         }
 
         .section-content ul li {
             position: relative;
-            padding-left: 20px;
-            margin-bottom: 8px;
+            padding-left: 18px;
+            margin-bottom: 9px;
+            font-size: 0.95em;
+            color: rgba(255, 255, 255, 0.88);
         }
 
         .section-content ul li::before {
-            content: '•'; /* 글머리 기호 */
+            content: '·';
             color: var(--accent-purple);
             position: absolute;
             left: 0;
-            font-size: 1.2em;
+            font-size: 1.4em;
             line-height: 1;
+            top: 1px;
         }
 
-        /* 키워드 알약 스타일 */
-        .keyword-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: flex-start; /* 왼쪽 정렬로 변경 */
-            margin-top: 30px; /* 소개 문단과의 간격 */
-            padding: 10px 0;
+        .award-highlight {
+            color: #fffaaa;
         }
 
-        .pill {
-          padding: 2px 12px;
-          background: #ffffff;
-          border: 2px solid #8f95ff;
-          border-radius: 999px;
-          color: #6f6fff;
-          font-size: 14px;
-          font-weight: 600;
-          text-align: center;
-          box-sizing: border-box;
+        .date-dim {
+            color: rgba(255, 255, 255, 0.38);
         }
 
-        /* 프로젝트 카드 (예시) */
+        .bracket-cherry {
+            color: #ff6b8a;
+        }
+
+        /* ── PROJECT CARDS ── */
         .project-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
         }
 
         .project-card {
-            background-color: var(--primary-bg);
+            background-color: #111;
             border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 8px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 18px 20px;
+            border-radius: 10px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
         }
 
         .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px var(--shadow-color);
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 20px rgba(171, 150, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .project-card .card-main-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
 
         .project-card h3 {
             font-family: 'Sweet700', sans-serif;
             color: var(--accent-purple);
-            margin-top: 0;
-            margin-bottom: 10px;
+            margin: 0;
+            font-size: 0.97em;
+            line-height: 1.4;
         }
 
         .project-card p {
-            font-size: 0.95em;
-            color: var(--text-color);
-            opacity: 0.9;
+            font-size: 0.88em;
+            color: rgba(255, 255, 255, 0.75);
+            margin: 0;
+            line-height: 1.55;
         }
 
-        .project-card a {
+        .project-card .card-footer {
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .project-card .card-footer a {
             color: var(--accent-blue);
             text-decoration: none;
-            font-weight: bold;
+            font-size: 0.82em;
+            font-weight: 600;
+            transition: color 0.15s;
+            position: relative;
+            z-index: 2;
         }
 
-        .project-card a:hover {
-            text-decoration: underline;
+        .project-card .card-footer a:hover {
+            color: var(--accent-purple);
         }
 
-        /* 일반 링크 스타일 */
+        .project-card .card-date {
+            font-size: 0.78em;
+            color: rgba(255, 255, 255, 0.35);
+            margin-left: auto;
+        }
+
+        /* ── TECH STACK ── */
+        .tech-category-label {
+            font-size: 0.78em;
+            color: var(--accent-purple);
+            opacity: 0.7;
+            margin: 0 0 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .tech-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .tech-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: default;
+        }
+
+        .tech-icon:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .icon-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .icon-c {
+            background: #5e97d0;
+        }
+
+        .icon-cpp {
+            background: #00427d;
+        }
+
+        .icon-python {
+            background: #3776ab;
+        }
+
+        .icon-js {
+            background: #f0db4f;
+            color: #222;
+        }
+
+        .icon-html5 {
+            background: #e34c26;
+        }
+
+        .icon-java {
+            background: #e76f00;
+        }
+
+        .icon-django {
+            background: #0c4b33;
+        }
+
+        .icon-mysql {
+            background: #00758f;
+        }
+
+        .icon-qt {
+            background: #41cd52;
+        }
+
+        .icon-xcode {
+            background: #147efb;
+        }
+
+        .icon-ps {
+            background: #31a8ff;
+        }
+
+        .icon-ai {
+            background: #ff9a00;
+        }
+
+        .icon-figma {
+            background: #1e1e1e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-pr {
+            background: #9999ff;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 767px) {
+            body {
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                position: static;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .profile-picture {
+                width: 60px;
+                height: 60px;
+            }
+
+            .name {
+                font-size: 1.3em;
+            }
+
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         a {
             color: var(--accent-purple);
             text-decoration: none;
@@ -268,105 +407,222 @@
         a:hover {
             text-decoration: underline;
         }
-
-        /* 480px 반응형 조정은 767px 미디어 쿼리로 통합되었습니다. */
     </style>
 </head>
+
 <body>
     <div class="portfolio-container">
         <aside class="sidebar">
             <div class="profile-section">
                 <img src="../sprites/profile.jpg" alt="Profile Picture" class="profile-picture">
                 <h1 class="name">방세연(banda)</h1>
-                <p class="tagline">Infosec | CyberSec | Learner</p>
             </div>
             <nav>
-                <!-- 페이지 내 빠른 이동을 위한 네비게이션 링크 (선택 사항) -->
                 <ul>
-                    <li><a href="#introduction">소개</a></li>
-                    <li><a href="#education">학력 및 소속</a></li>
-                    <li><a href="#activities">활동 및 발표</a></li>
-                    <li><a href="#experience">수상사항</a></li>
-                    <li><a href="#projects">프로젝트</a></li>
+                    <li><a href="#introduction">About</a></li>
+                    <li><a href="#education">Education</a></li>
+                    <li><a href="#activities">Activities</a></li>
+                    <li><a href="#experience">Awards</a></li>
+                    <li><a href="#projects-team">Team Projects</a></li>
+                    <li><a href="#projects-personal">Personal Projects</a></li>
+                    <li><a href="#techstack">Tech Stack</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="main-content">
             <section id="introduction" class="content-section">
-                <h2 class="section-title">소개</h2>
+                <h2 class="section-title">About</h2>
                 <div class="section-content">
                     <p>Cyber Security Researcher</p>
-                    <div class="keyword-pills">
-                        <div class="pill">Windows Security</div>
-                        <div class="pill">Boot System</div>
-                        <div class="pill">Deobfuscation</div>
-                        <div class="pill">Incident Response</div>
-                    </div>
                 </div>
             </section>
 
             <section id="education" class="content-section">
-                <h2 class="section-title">학력 및 소속</h2>
+                <h2 class="section-title">Education</h2>
                 <div class="section-content">
                     <ul>
                         <li><strong>경기여자고등학교 졸업</strong></li>
-                        <li><strong>서울여자대학교</strong> - 사이버보안전공 (2024.03 - 재학 중)</li>
-                        <li>정보보호소학회 SWING (2024.03 - 현재)</li>
-                        <li>Hackyboiz (2025.03 - 현재)</li>
-                        
+                        <li><strong>서울여자대학교</strong> 24학번 <span class="date-dim">(2024.03 - 재학 중)</span>
+                            <br>- 사이버보안 심화전공 (개인정보보호 부전공)
+                        </li>
+                        <li>정보보호소학회 SWING 32기 소속 <span class="date-dim">(2024.03 - 현재)</span></li>
+                        <li>Hackyboiz Research Team 소속 <span class="date-dim">(2025.03 - 현재)</span></li>
                     </ul>
                 </div>
             </section>
 
             <section id="activities" class="content-section">
-                <h2 class="section-title">활동 및 발표</h2>
+                <h2 class="section-title">Activities</h2>
                 <div class="section-content">
                     <ul>
-                        <li>화이트햇 3기 수료 (2025.03 - 2025.09)</li>
-                        <li>SWING 칼럼 스터디 <br>- Windows Active Directory (2025.02-2025.07)</li>
-                        <li>SWING 1th TECH SEMINAR <br>- [Suricata 기반의 NIDS/NIPS] (2024)</li>
-                        <li>ASC&SWING 연합 세미나 <br>- [Windows Kernel Minifilter Driver LPE] (2025)</li>
+                        <li>화이트햇 스쿨(WHS) 3기 수료 <span class="date-dim">(2025.03 - 2025.09)</span></li>
+                        <li>SWING 칼럼 스터디 <br>- <span class="bracket-cherry">[Windows Active Directory]</span> <span
+                                class="date-dim">(2025.02 - 2025.07)</span></li>
+                        <li>SWING 1th TECH SEMINAR <br>- <span class="bracket-cherry">[Suricata 기반의 NIDS/NIPS]</span>
+                            <span class="date-dim">(2024)</span></li>
+                        <li>ASC&amp;SWING 연합 세미나 <br>- <span class="bracket-cherry">[Windows Kernel Minifilter Driver
+                                LPE]</span> <span class="date-dim">(2025)</span></li>
+                        <li>제 31회 POC SECURITY 해킹캠프 수료</li>
+                        <li>KISA 버그헌팅 팀플레이 고급과정 수료</li>
                     </ul>
                 </div>
             </section>
 
             <section id="experience" class="content-section">
-                <h2 class="section-title">수상사항</h2>
+                <h2 class="section-title">Awards</h2>
                 <div class="section-content">
                     <ul>
-                        <li>화이트햇스쿨 3기 - 우수프로젝트상</li>
-                        <li>Programming GURU1 - 개인상</li>
-                        <li>AutoHack 2025 - 본선</li>
-                        <li>2025 SWING CTF - 개인 2등, 팀 2등</li>
-
+                        <li>Programming Guru1 - <span class="award-highlight">개인상</span></li>
+                        <li>Programming Guru2(Android) - <span class="award-highlight">우수상</span></li>
+                        <li>화이트햇 스쿨(WHS) 3기 - <span class="award-highlight">우수프로젝트상</span></li>
+                        <li>2025 SWING CTF - <span class="award-highlight">개인 2등, 팀 2등</span></li>
+                        <li>AutoHack 2025 - <span class="award-highlight">본선 진출</span></li>
+                        <li>2026 Eschaton CTF - <span class="award-highlight">본선 진출</span></li>
                     </ul>
                 </div>
             </section>
 
-            <section id="projects" class="content-section">
-                <h2 class="section-title">프로젝트</h2>
+            <section id="projects-team" class="content-section">
+                <h2 class="section-title">Team Projects</h2>
                 <div class="section-content project-grid">
                     <div class="project-card">
-                        <h3>🐜 Windows Kernel Driver & Named Pipe LPE Bug Hunting</h3>
-                        <p>OWASP Seoul Chapter 25.07/ 해킹캠프 25.08<br>Windows 11 Kernel Driver/ Named Pipe 대상 권한 상승 버그헌팅 프로젝트</p>
-                        <p></p>
-                        <p><a href="#">25.05-25.08</a></p>
+                        <h3>🎖️ Windows Kernel Driver &amp; Named Pipe LPE Bug Hunting</h3>
+                        <p>OWASP Seoul Chapter 25.07 / 해킹캠프 25.08<br>Windows 11 Kernel Driver / Named Pipe 대상 권한 상승 버그헌팅
+                            프로젝트</p>
+                        <div class="card-footer">
+                            <span class="card-date">25.05 – 25.08</span>
+                        </div>
                     </div>
                     <div class="project-card">
-                        <h3>🐜 Windows 상용 프로그램 Bug Hunting</h3>
+                        <h3>🎖️ Windows 상용 프로그램 Bug Hunting</h3>
                         <p>Windows 상용 프로그램 대상으로 WinAFL, BFF 등 다양한 퍼저 사용 및 취약점 분석</p>
-                        <p><a href="#">24.09-25.01</a></p>
+                        <div class="card-footer">
+                            <span class="card-date">24.09 – 25.01</span>
+                        </div>
                     </div>
                     <div class="project-card">
-                        <h3>🦦 Suricata Based NIDS/NIPS</h3>
+                        <h3>🎖️ Suricata Based NIDS/NIPS</h3>
                         <p>미국 국토안보부에서 OISF를 설립해 만든 Suricata 프로그램을 대상으로 실제 시나리오를 통해 NIDS/NIPS 모니터링 실습 재현.</p>
-                        <p><a href="#">24.03-24.12</a></p>
+                        <div class="card-footer">
+                            <span class="card-date">24.03 – 24.12</span>
+                        </div>
                     </div>
                 </div>
             </section>
-            <br><br><br><br><br>
+
+            <section id="projects-personal" class="content-section">
+                <h2 class="section-title">Personal Projects</h2>
+                <div class="section-content project-grid">
+                    <div class="project-card">
+                        <h3>🎖️ b4nda.com</h3>
+                        <p>RPG Maker MZ 기반 게임 몰입형 포트폴리오 사이트 개발. 게임 내 이벤트 스크립팅으로 포트폴리오 콘텐츠를 구성하며 blog / contact /
+                            portfolio 등 다수의 커스텀 페이지를 직접 설계.</p>
+                        <div class="card-footer">
+                            <a href="https://b4nda.com" target="_blank">→ b4nda.com</a>
+                            <span class="card-date">2025</span>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <a href="https://b4nda.com/blog/posts/post03.html" target="_blank" class="card-main-link"></a>
+                        <h3>🎖️ VMProtect 가상화 난독화 해제</h3>
+                        <p>VMProtect 3으로 보호된 바이너리를 대상으로 동적 트레이싱 및 의미론적 분석을 통해 가상화 난독화(devirtualization obfuscation)를
+                            해제하는 리서치 기반 툴체인 구현. VMProtect 내부 가상화 구조 분석 및 writeup 작성.</p>
+                        <div class="card-footer">
+                            <a href="https://github.com/banda59/VMP-devirtualize-project" target="_blank">→ GitHub</a>
+                            <span class="card-date">2025</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="techstack" class="content-section">
+                <h2 class="section-title">Tech Stack</h2>
+                <div class="section-content">
+                    <p class="tech-category-label">Languages &amp; Frameworks</p>
+                    <div class="tech-icons">
+                        <div class="tech-icon icon-c" title="C">
+                            <svg viewBox="0 0 32 32" width="26" height="26" fill="white"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-size="18"
+                                    font-weight="900" font-family="serif">C</text>
+                            </svg>
+                        </div>
+                        <div class="tech-icon icon-cpp" title="C++">
+                            <span class="icon-label">C++</span>
+                        </div>
+                        <div class="tech-icon icon-python" title="Python">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="26" height="26">
+                                <path fill="#fff"
+                                    d="M15.9 3C11 3 11.3 5.1 11.3 5.1l.01 2.2h4.7v.7H9.3S6 7.6 6 12.6s2.9 4.8 2.9 4.8h1.7v-2.3s-.1-2.9 2.8-2.9h4.9s2.7.04 2.7-2.6V5.7S21.4 3 15.9 3zm-2.7 1.6c.5 0 .9.4.9.9s-.4.9-.9.9-.9-.4-.9-.9.4-.9.9-.9z" />
+                                <path fill="#fff"
+                                    d="M16.1 29c4.9 0 4.6-2.1 4.6-2.1l-.01-2.2h-4.7v-.7h6.7s3.3.4 3.3-4.6-2.9-4.8-2.9-4.8h-1.7v2.3s.1 2.9-2.8 2.9h-4.9s-2.7-.04-2.7 2.6v4.4S10.6 29 16.1 29zm2.7-1.6c-.5 0-.9-.4-.9-.9s.4-.9.9-.9.9.4.9.9-.4.9-.9.9z" />
+                            </svg>
+                        </div>
+                        <div class="tech-icon icon-js" title="JavaScript">
+                            <span class="icon-label" style="color:#222;">JS</span>
+                        </div>
+                        <div class="tech-icon icon-html5" title="HTML5">
+                            <span class="icon-label">HTML</span>
+                        </div>
+                        <div class="tech-icon icon-java" title="Java">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24"
+                                fill="white">
+                                <path
+                                    d="M11.7 22.7s-1 .6.7.8c2 .2 3 .2 5.2-.2 0 0 .6.3 1.4.6-4.9 2.1-11.1-.1-7.3-1.2zM11.1 20s-1.1.8.6 1c2.2.2 3.9.2 6.9-.3 0 0 .4.4 1 .6-6.1 1.8-12.9.2-8.5-1.3z" />
+                                <path
+                                    d="M17.4 14.3c1.2 1.4.3 2.7.3 2.7s3.2-1.7 1.7-3.8c-1.4-2-2.5-3 3.4-6.4 0 0-9.3 2.3-5.4 7.5z" />
+                                <path
+                                    d="M23.5 24.4s.7.6-.8.9c-2.9.9-12.1 1.1-14.6.1-.9-.4.8-.9 1.4-.9.5-.1.8 0 .8 0-1-1-6.4 1.4-2.7 2 9.9 1.6 18.1-.7 15.9-2.1zM12.1 17.5s-4.6 1.1-1.6 1.5c1.2.2 3.7.1 6-.1 1.9-.2 3.8-.5 3.8-.5s-.7.3-1.2.5c-4.7 1.2-13.8.7-11.2-.5 2.2-1 4.2-.9 4.2-.9zM21.3 21.2c4.8-2.5 2.6-4.9 1-4.6-.4.1-.5.2-.5.2s.1-.2.4-.3c2.9-1 5.1 3-1 4.6 0 0 .1-.1.1-.1z" />
+                                <path
+                                    d="M18.5 3S21 5.5 16 8.1c-4.1 2.1-1 3.3 0 4.7-1.5-1.4-2.6-2.6-1.9-3.7C15.2 7.3 19.4 6.2 18.5 3z" />
+                                <path
+                                    d="M12.8 27.8c4.6.3 11.7-.2 11.9-2.2 0 0-.3.8-3.8 1.4-3.9.7-8.8.6-11.7.2 0 0 .6.5 3.6.6z" />
+                            </svg>
+                        </div>
+                        <div class="tech-icon icon-django" title="Django">
+                            <span class="icon-label">Djg</span>
+                        </div>
+                        <div class="tech-icon icon-mysql" title="MySQL">
+                            <span class="icon-label">MySQL</span>
+                        </div>
+                        <div class="tech-icon icon-qt" title="Qt">
+                            <span class="icon-label" style="font-size:13px;font-weight:900;">Qt</span>
+                        </div>
+                        <div class="tech-icon icon-xcode" title="Xcode">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24"
+                                fill="white">
+                                <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-size="13"
+                                    font-weight="900" font-family="monospace">Xc</text>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="tech-category-label">Design Tools</p>
+                    <div class="tech-icons">
+                        <div class="tech-icon icon-ps" title="Adobe Photoshop">
+                            <span class="icon-label">Ps</span>
+                        </div>
+                        <div class="tech-icon icon-ai" title="Adobe Illustrator">
+                            <span class="icon-label">Ai</span>
+                        </div>
+                        <div class="tech-icon icon-figma" title="Figma">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="22" height="22">
+                                <circle cx="20" cy="16" r="4" fill="#1abcfe" />
+                                <path d="M12 28c2.2 0 4-1.8 4-4v-4h-4c-2.2 0-4 1.8-4 4s1.8 4 4 4z" fill="#0acf83" />
+                                <path d="M8 16c0-2.2 1.8-4 4-4h4v8h-4c-2.2 0-4-1.8-4-4z" fill="#a259ff" />
+                                <path d="M8 8c0-2.2 1.8-4 4-4h4v8h-4C9.8 12 8 10.2 8 8z" fill="#f24e1e" />
+                                <path d="M16 4h4c2.2 0 4 1.8 4 4s-1.8 4-4 4h-4V4z" fill="#ff7262" />
+                            </svg>
+                        </div>
+                        <div class="tech-icon icon-pr" title="Adobe Premiere Pro">
+                            <span class="icon-label">Pr</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 </body>
+
 </html>
